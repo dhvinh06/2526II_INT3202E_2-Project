@@ -34,27 +34,95 @@ public class AdminController {
         this.inventoryReceiptService = inventoryReceiptService;
     }
 
-    @GetMapping("/users") public List<Map<String, Object>> users() { return userAdminService.allUsers(); }
-    @PutMapping("/users/{id}/role") public Map<String, Object> updateRole(@PathVariable Integer id, @Valid @RequestBody UpdateUserRoleRequest req) { return userAdminService.updateRole(id, req.getRoleId()); }
+    @GetMapping("/users")
+    public List<Map<String, Object>> users() {
+        return userAdminService.allUsers();
+    }
 
-    @GetMapping("/orders") public List<Map<String, Object>> orders(@RequestParam(required = false) String status) { return orderService.all(status); }
-    @PutMapping("/orders/{id}/status") public Map<String, Object> updateOrder(@PathVariable String id, @Valid @RequestBody UpdateOrderStatusRequest req) { return orderService.updateStatus(id, req.getStatus()); }
+    @PutMapping("/users/{id}/role")
+    public Map<String, Object> updateRole(@PathVariable Integer id, @Valid @RequestBody UpdateUserRoleRequest req) {
+        return userAdminService.updateRole(id, req.getRoleId());
+    }
 
-    @PostMapping("/products") public Object createProduct(@Valid @RequestBody ProductRequest req) { return productService.save(req, null); }
-    @PutMapping("/products/{id}") public Object updateProduct(@PathVariable Integer id, @Valid @RequestBody ProductRequest req) { return productService.save(req, id); }
-    @DeleteMapping("/products/{id}") public void deleteProduct(@PathVariable Integer id) { productService.delete(id); }
+    @GetMapping("/orders")
+    public List<Map<String, Object>> orders(@RequestParam(required = false) String status) {
+        return orderService.all(status);
+    }
 
-    @GetMapping("/categories") public List<?> categories() { return categoryRepository.findAll(); }
-    @PostMapping("/categories") public Object createCategory(@RequestBody Category body) { return categoryRepository.save(body); }
-    @PutMapping("/categories/{id}") public Object updateCategory(@PathVariable Integer id, @RequestBody Category body) { body.setId(id); return categoryRepository.save(body); }
-    @DeleteMapping("/categories/{id}") public void deleteCategory(@PathVariable Integer id) { categoryRepository.deleteById(id); }
+    @PutMapping("/orders/{id}/status")
+    public Map<String, Object> updateOrder(@PathVariable String id, @Valid @RequestBody UpdateOrderStatusRequest req) {
+        return orderService.updateStatus(id, req.getStatus());
+    }
 
-    @GetMapping("/brands") public List<?> brands() { return brandRepository.findAll(); }
-    @PostMapping("/brands") public Object createBrand(@RequestBody Brand body) { return brandRepository.save(body); }
-    @PutMapping("/brands/{id}") public Object updateBrand(@PathVariable Integer id, @RequestBody Brand body) { body.setId(id); return brandRepository.save(body); }
-    @DeleteMapping("/brands/{id}") public void deleteBrand(@PathVariable Integer id) { brandRepository.deleteById(id); }
+    @PostMapping("/products")
+    public Object createProduct(@Valid @RequestBody ProductRequest req) {
+        return productService.save(req, null);
+    }
 
-    @PostMapping("/inventory-receipts") public Map<String, Object> createReceipt(@Valid @RequestBody InventoryReceiptRequest req) { return inventoryReceiptService.create(req); }
-    @GetMapping("/inventory-receipts") public List<Map<String, Object>> receipts() { return inventoryReceiptService.all(); }
-    @GetMapping("/inventory-receipts/{id}") public Map<String, Object> receipt(@PathVariable Integer id) { return inventoryReceiptService.byId(id); }
+    @PutMapping("/products/{id}")
+    public Object updateProduct(@PathVariable Integer id, @Valid @RequestBody ProductRequest req) {
+        return productService.save(req, id);
+    }
+
+    @DeleteMapping("/products/{id}")
+    public void deleteProduct(@PathVariable Integer id) {
+        productService.delete(id);
+    }
+
+    @GetMapping("/categories")
+    public List<?> categories() {
+        return categoryRepository.findAll();
+    }
+
+    @PostMapping("/categories")
+    public Object createCategory(@RequestBody Category body) {
+        return categoryRepository.save(body);
+    }
+
+    @PutMapping("/categories/{id}")
+    public Object updateCategory(@PathVariable Integer id, @RequestBody Category body) {
+        body.setId(id);
+        return categoryRepository.save(body);
+    }
+
+    @DeleteMapping("/categories/{id}")
+    public void deleteCategory(@PathVariable Integer id) {
+        categoryRepository.deleteById(id);
+    }
+
+    @GetMapping("/brands")
+    public List<?> brands() {
+        return brandRepository.findAll();
+    }
+
+    @PostMapping("/brands")
+    public Object createBrand(@RequestBody Brand body) {
+        return brandRepository.save(body);
+    }
+
+    @PutMapping("/brands/{id}")
+    public Object updateBrand(@PathVariable Integer id, @RequestBody Brand body) {
+        body.setId(id);
+        return brandRepository.save(body);
+    }
+
+    @DeleteMapping("/brands/{id}")
+    public void deleteBrand(@PathVariable Integer id) {
+        brandRepository.deleteById(id);
+    }
+
+    @PostMapping("/inventory-receipts")
+    public Map<String, Object> createReceipt(@Valid @RequestBody InventoryReceiptRequest req) {
+        return inventoryReceiptService.create(req);
+    }
+
+    @GetMapping("/inventory-receipts")
+    public List<Map<String, Object>> receipts() {
+        return inventoryReceiptService.all();
+    }
+
+    @GetMapping("/inventory-receipts/{id}")
+    public Map<String, Object> receipt(@PathVariable Integer id) {
+        return inventoryReceiptService.byId(id);
+    }
 }

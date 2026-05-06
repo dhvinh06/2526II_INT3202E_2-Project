@@ -52,7 +52,9 @@ public class ShippingAddressService {
         return toMap(shippingAddressRepository.save(address));
     }
 
-    public void delete(Integer id) { shippingAddressRepository.deleteById(id); }
+    public void delete(Integer id) {
+        shippingAddressRepository.deleteById(id);
+    }
 
     public ShippingAddress validateForCheckout(Integer userId, Integer addressId, ShippingAddressRequest newAddress) {
         if (addressId != null) {

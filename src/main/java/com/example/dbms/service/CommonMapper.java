@@ -6,7 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class CommonMapper {
-    private CommonMapper() {}
+    private CommonMapper() {
+    }
 
     public static Map<String, Object> product(Product p) {
         Map<String, Object> m = new HashMap<>();

@@ -1,10 +1,16 @@
 package com.example.dbms.entity;
 
 import jakarta.persistence.*;
+
 import java.time.Instant;
+
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "cart_items")
+@Getter
+@Setter
 public class CartItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,21 +27,4 @@ public class CartItem {
     private Integer quantity;
     @Column(name = "created_at")
     private Instant createdAt;
-
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
-    public Product getProduct() { return product; }
-    public void setProduct(Product product) { this.product = product; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public Integer getPrice() { return price; }
-    public void setPrice(Integer price) { this.price = price; }
-    public String getImage() { return image; }
-    public void setImage(String image) { this.image = image; }
-    public Integer getQuantity() { return quantity; }
-    public void setQuantity(Integer quantity) { this.quantity = quantity; }
-    public Instant getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }

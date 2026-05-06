@@ -1,10 +1,16 @@
 package com.example.dbms.entity;
 
 import jakarta.persistence.*;
+
 import java.time.Instant;
+
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "inventory_receipts")
+@Getter
+@Setter
 public class InventoryReceipt {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,15 +23,4 @@ public class InventoryReceipt {
     private String note;
     @Column(name = "created_at")
     private Instant createdAt;
-
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
-    public Supplier getSupplier() { return supplier; }
-    public void setSupplier(Supplier supplier) { this.supplier = supplier; }
-    public Integer getTotalCost() { return totalCost; }
-    public void setTotalCost(Integer totalCost) { this.totalCost = totalCost; }
-    public String getNote() { return note; }
-    public void setNote(String note) { this.note = note; }
-    public Instant getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }
