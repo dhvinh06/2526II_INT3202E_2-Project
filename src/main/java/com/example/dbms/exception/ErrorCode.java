@@ -6,5 +6,7 @@ public enum ErrorCode {
     INSUFFICIENT_STOCK,
     EMPTY_CART,
     BAD_REQUEST,
-    INTERNAL_ERROR
+    INTERNAL_ERROR,
+    UNAUTHORIZED,
+    CONFLICT
 }
