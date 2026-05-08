@@ -1,0 +1,61 @@
+### ------------------- AUTH API -------------------
+
+### 1. Register a new user
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Nguyen Van A",
+  "email": "nguyenvana@example.com",
+  "password": "password123"
+}
+
+###
+
+### 2. Login
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "nguyenvana@example.com",
+  "password": "password123"
+}
+
+### ------------------- USER PROFILE API -------------------
+# Note: Thay số 1 ở đường dẫn bằng ID của User lấy được từ kết quả của bước Login
+
+### 3. Get User Profile
+GET http://localhost:8080/api/users/1
+
+###
+
+### 4. Update User Profile
+PUT http://localhost:8080/api/users/1
+Content-Type: application/json
+
+{
+  "name": "Nguyen Van A (Updated)",
+  "email": "nguyenvana.updated@example.com"
+}
+
+###
+
+### 5. Change Password
+PUT http://localhost:8080/api/users/1/password
+Content-Type: application/json
+
+{
+  "oldPassword": "password123",
+  "newPassword": "newpassword456"
+}
+
+###
+
+### 6. Login with NEW Password
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "nguyenvana.updated@example.com",
+  "password": "newpassword456"
+}
