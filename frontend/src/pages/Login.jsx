@@ -60,11 +60,7 @@ function LoginForm() {
       login(res)
       navigate('/')
     } catch (err) {
-      if (err.response?.status === 401) {
-        setError('Sai email hoặc mật khẩu')
-      } else {
-        setError('Đã có lỗi xảy ra, thử lại sau')
-      }
+      setError(err.message || 'Đã có lỗi xảy ra, thử lại sau')
     } finally {
       setLoading(false)
     }
@@ -148,11 +144,7 @@ function RegisterForm({ onSuccess }) {
         onSuccess()
       }, 1500)
     } catch (err) {
-      if (err.response?.status === 409) {
-        setError('Email này đã được sử dụng')
-      } else {
-        setError('Đã có lỗi xảy ra, thử lại sau')
-      }
+      setError(err.message || 'Đã có lỗi xảy ra, thử lại sau')
     } finally {
       setLoading(false)
     }
