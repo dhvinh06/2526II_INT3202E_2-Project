@@ -1,6 +1,6 @@
 -- MariaDB dump 10.19  Distrib 10.4.32-MariaDB, for Win64 (AMD64)
 --
--- Host: 127.0.0.1    Database: warm_editorial
+-- Host: 127.0.0.1    Database: dbms
 -- ------------------------------------------------------
 -- Server version	10.4.32-MariaDB
 
@@ -19,8 +19,8 @@
 -- Table structure for table `brands`
 --
 
-CREATE DATABASE warm_editorial;
-use warm_editorial;
+CREATE DATABASE dbms;
+use dbms;
 
 DROP TABLE IF EXISTS `brands`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

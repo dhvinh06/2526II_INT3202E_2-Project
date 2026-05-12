@@ -1,0 +1,263 @@
+import { useState, useEffect } from 'react'
+import { useNavigate, Navigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import { authAPI } from '../api'
+import styles from './Login.module.css'
+
+const EyeIcon = ({ show }) => show
+  ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+  : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+function InputGroup({ label, type = 'text', value, onChange, error, placeholder, rightAction }) {
+  return (
+    <div className={styles.formGroup}>
+      <label>{label}</label>
+      <div className={styles.inputWrap}>
+        <input
+          type={type}
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          placeholder={placeholder}
+          className={error ? styles.invalid : ''}
+        />
+        {rightAction}
+      </div>
+      {error && <span className={styles.errMsg}>{error}</span>}
+    </div>
+  )
+}
+
+function LoginForm() {
+  const navigate = useNavigate()
+  const { login } = useAuth()
+  
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState({})
+
+  const validate = () => {
+    const errs = {}
+    if (!email) errs.email = 'Vui lòng nhập email'
+    else if (!emailRegex.test(email)) errs.email = 'Email không đúng định dạng'
+    if (!password) errs.password = 'Vui lòng nhập mật khẩu'
+    setFieldErrors(errs)
+    return Object.keys(errs).length === 0
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    if (!validate()) return
+
+    setLoading(true)
+    try {
+      const res = await authAPI.login({ email, password })
+      login(res)
+      navigate('/')
+    } catch (err) {
+      if (err.response?.status === 401) {
+        setError('Sai email hoặc mật khẩu')
+      } else {
+        setError('Đã có lỗi xảy ra, thử lại sau')
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className={styles.form}>
+      {error && <div className={styles.alertError}>{error}</div>}
+      
+      <InputGroup 
+        label="Email" 
+        value={email} 
+        onChange={setEmail} 
+        error={fieldErrors.email}
+        placeholder="Nhập email của bạn"
+      />
+      
+      <InputGroup 
+        label="Mật khẩu" 
+        type={showPassword ? 'text' : 'password'}
+        value={password} 
+        onChange={setPassword} 
+        error={fieldErrors.password}
+        placeholder="Nhập mật khẩu"
+        rightAction={
+          <button type="button" className={styles.eyeBtn} onClick={() => setShowPassword(!showPassword)}>
+            <EyeIcon show={showPassword} />
+          </button>
+        }
+      />
+
+      <button type="submit" className={styles.submitBtn} disabled={loading}>
+        {loading ? 'Đang xử lý...' : 'Đăng nhập'}
+      </button>
+    </form>
+  )
+}
+
+function RegisterForm({ onSuccess }) {
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
+  
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+  const [fieldErrors, setFieldErrors] = useState({})
+
+  const validate = () => {
+    const errs = {}
+    if (!name.trim()) errs.name = 'Vui lòng nhập họ tên'
+    
+    if (!email) errs.email = 'Vui lòng nhập email'
+    else if (!emailRegex.test(email)) errs.email = 'Email không đúng định dạng'
+    
+    if (!password) errs.password = 'Vui lòng nhập mật khẩu'
+    else if (password.length < 6) errs.password = 'Mật khẩu ít nhất 6 ký tự'
+    
+    if (!confirmPassword) errs.confirmPassword = 'Vui lòng xác nhận mật khẩu'
+    else if (confirmPassword !== password) errs.confirmPassword = 'Mật khẩu xác nhận không khớp'
+
+    setFieldErrors(errs)
+    return Object.keys(errs).length === 0
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    setSuccess('')
+    if (!validate()) return
+
+    setLoading(true)
+    try {
+      await authAPI.register({ name, email, password })
+      setSuccess('Đăng ký thành công!')
+      setTimeout(() => {
+        onSuccess()
+      }, 1500)
+    } catch (err) {
+      if (err.response?.status === 409) {
+        setError('Email này đã được sử dụng')
+      } else {
+        setError('Đã có lỗi xảy ra, thử lại sau')
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className={styles.form}>
+      {error && <div className={styles.alertError}>{error}</div>}
+      {success && <div className={styles.alertSuccess}>{success}</div>}
+
+      <InputGroup 
+        label="Họ tên" 
+        value={name} 
+        onChange={setName} 
+        error={fieldErrors.name}
+        placeholder="Nguyễn Văn A"
+      />
+
+      <InputGroup 
+        label="Email" 
+        value={email} 
+        onChange={setEmail} 
+        error={fieldErrors.email}
+        placeholder="example@email.com"
+      />
+      
+      <InputGroup 
+        label="Mật khẩu" 
+        type={showPassword ? 'text' : 'password'}
+        value={password} 
+        onChange={setPassword} 
+        error={fieldErrors.password}
+        placeholder="Ít nhất 6 ký tự"
+        rightAction={
+          <button type="button" className={styles.eyeBtn} onClick={() => setShowPassword(!showPassword)}>
+            <EyeIcon show={showPassword} />
+          </button>
+        }
+      />
+
+      <InputGroup 
+        label="Xác nhận mật khẩu" 
+        type={showConfirm ? 'text' : 'password'}
+        value={confirmPassword} 
+        onChange={setConfirmPassword} 
+        error={fieldErrors.confirmPassword}
+        placeholder="Nhập lại mật khẩu"
+        rightAction={
+          <button type="button" className={styles.eyeBtn} onClick={() => setShowConfirm(!showConfirm)}>
+            <EyeIcon show={showConfirm} />
+          </button>
+        }
+      />
+
+      <button type="submit" className={styles.submitBtn} disabled={loading || success}>
+        {loading ? 'Đang xử lý...' : 'Đăng ký'}
+      </button>
+    </form>
+  )
+}
+
+export default function Login() {
+  const { user } = useAuth()
+  const [tab, setTab] = useState('login') // 'login' | 'register'
+
+  // Nếu user đã đăng nhập, redirect về trang chủ
+  if (user) {
+    return <Navigate to="/" replace />
+  }
+
+  return (
+    <div className={styles.container}>
+      <div className={styles.card}>
+        <div className={styles.header}>
+          <div className={styles.logoBox}>
+            <svg viewBox="0 0 24 24" fill="white" width="24" height="24">
+              <path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59L5.25 14c-.16.28-.25.61-.25.96C5 16.1 5.9 17 7 17h14v-2H7.42a.25.25 0 0 1-.25-.25l.03-.12.9-1.63H19c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 23.46 4H5.21l-.94-2H1z"/>
+            </svg>
+          </div>
+          <h1 className={styles.shopName}>ShopVN</h1>
+        </div>
+
+        <div className={styles.tabs}>
+          <button 
+            className={`${styles.tabBtn} ${tab === 'login' ? styles.active : ''}`}
+            onClick={() => setTab('login')}
+          >
+            Đăng nhập
+          </button>
+          <button 
+            className={`${styles.tabBtn} ${tab === 'register' ? styles.active : ''}`}
+            onClick={() => setTab('register')}
+          >
+            Đăng ký
+          </button>
+        </div>
+
+        <div className={styles.panel}>
+          {tab === 'login' ? (
+            <LoginForm />
+          ) : (
+            <RegisterForm onSuccess={() => setTab('login')} />
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}

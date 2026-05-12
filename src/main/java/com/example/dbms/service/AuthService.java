@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -54,11 +55,11 @@ public class AuthService {
     }
 
     private Map<String, Object> mapUser(User u) {
-        return Map.of(
-                "id", u.getId(),
-                "name", u.getName(),
-                "email", u.getEmail(),
-                "role", u.getRole() != null ? u.getRole().getName() : null
-        );
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", u.getId());
+        map.put("name", u.getName());
+        map.put("email", u.getEmail());
+        map.put("role", u.getRole() != null ? u.getRole().getName() : null);
+        return map;
     }
 }
