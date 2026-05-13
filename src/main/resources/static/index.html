@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ShopVN – Mua sắm thả ga</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;color:#1a1a2e;background:#f7f7f7}
+a{text-decoration:none;color:inherit}
+button{cursor:pointer;font-family:inherit}
+img{display:block;width:100%}
+
+/* ─── HEADER ─── */
+header{background:#fff;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.07)}
+.header-inner{max-width:1280px;margin:auto;padding:0 20px;height:64px;display:flex;align-items:center;gap:16px}
+.logo{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.logo-box{width:38px;height:38px;background:#FF6B2C;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.logo-box svg{width:22px;height:22px;fill:#fff}
+.logo-text{font-size:20px;font-weight:800;color:#FF6B2C;letter-spacing:-.5px}
+.search-wrap{flex:1;max-width:520px;position:relative}
+.search-wrap input{width:100%;padding:10px 42px 10px 16px;border:1.5px solid #e8e8e8;border-radius:24px;font-size:14px;font-family:inherit;outline:none;background:#f9f9f9;transition:border-color .2s,box-shadow .2s}
+.search-wrap input:focus{border-color:#FF6B2C;box-shadow:0 0 0 3px rgba(255,107,44,.12);background:#fff}
+.search-wrap svg{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#aaa;pointer-events:none}
+.header-right{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.cart-btn{position:relative;background:none;border:none;padding:6px}
+.cart-btn svg{width:24px;height:24px;stroke:#555;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s}
+.cart-btn:hover svg{stroke:#FF6B2C}
+.cart-badge{position:absolute;top:0;right:0;background:#FF6B2C;color:#fff;font-size:11px;font-weight:700;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;display:none}
+.btn-login{padding:8px 18px;background:#FF6B2C;color:#fff;border:none;border-radius:20px;font-size:13.5px;font-weight:600;transition:background .2s,box-shadow .2s;box-shadow:0 3px 10px rgba(255,107,44,.3)}
+.btn-login:hover{background:#e85c1f}
+
+/* ─── HERO ─── */
+#page-home{display:block}
+#page-detail{display:none}
+.hero{position:relative;height:480px;overflow:hidden;background:linear-gradient(135deg,#1a1a2e 0%,#2d1a0e 100%)}
+.hero-bg{position:absolute;inset:0;object-fit:cover;opacity:.35;width:100%;height:100%}
+.hero-content{position:relative;z-index:1;max-width:1280px;margin:auto;padding:0 20px;height:100%;display:flex;flex-direction:column;justify-content:center;gap:18px}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,107,44,.2);border:1px solid rgba(255,107,44,.4);color:#FF6B2C;border-radius:20px;padding:5px 14px;font-size:13px;font-weight:600;width:fit-content}
+.hero h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:800;color:#fff;line-height:1.2;max-width:560px}
+.hero h1 span{color:#FF6B2C}
+.hero p{color:#ccc;font-size:16px;max-width:440px;line-height:1.6}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap}
+.btn-hero-primary{padding:13px 30px;background:#FF6B2C;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;box-shadow:0 6px 20px rgba(255,107,44,.4);transition:background .2s,transform .1s}
+.btn-hero-primary:hover{background:#e85c1f;transform:translateY(-1px)}
+.btn-hero-secondary{padding:13px 30px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:12px;font-size:15px;font-weight:600;backdrop-filter:blur(6px);transition:background .2s}
+.btn-hero-secondary:hover{background:rgba(255,255,255,.2)}
+
+/* ─── PRODUCTS SECTION ─── */
+.section{max-width:1280px;margin:48px auto;padding:0 20px}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
+.section-title{font-size:22px;font-weight:800;color:#1a1a2e;position:relative;padding-left:14px}
+.section-title::before{content:'';position:absolute;left:0;top:4px;bottom:4px;width:4px;background:#FF6B2C;border-radius:4px}
+.see-all{font-size:13.5px;color:#FF6B2C;font-weight:600;border:1px solid #FF6B2C;padding:6px 14px;border-radius:20px;transition:background .2s,color .2s}
+.see-all:hover{background:#FF6B2C;color:#fff}
+.product-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.no-result{grid-column:1/-1;text-align:center;color:#aaa;font-size:15px;padding:40px 0}
+
+/* Card */
+.card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06);transition:transform .2s,box-shadow .2s;cursor:pointer}
+.card:hover{transform:translateY(-5px);box-shadow:0 12px 30px rgba(0,0,0,.12)}
+.card-img{aspect-ratio:1/1;overflow:hidden;background:#f0f0f0}
+.card-img img{width:100%;height:100%;object-fit:cover;transition:transform .35s}
+.card:hover .card-img img{transform:scale(1.07)}
+.card-body{padding:14px}
+.card-name{font-size:14px;font-weight:600;color:#1a1a2e;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.4}
+.card-price{font-size:16px;font-weight:800;color:#FF6B2C;margin-bottom:6px}
+.stars{color:#f5a623;font-size:13px;display:flex;align-items:center;gap:4px;margin-bottom:12px}
+.stars span{color:#888;font-size:12px}
+.btn-cart{width:100%;padding:9px;background:#fff;border:1.5px solid #FF6B2C;color:#FF6B2C;border-radius:8px;font-size:13px;font-weight:600;transition:background .2s,color .2s}
+.btn-cart:hover{background:#FF6B2C;color:#fff}
+
+/* ─── DETAIL PAGE ─── */
+.detail-wrap{max-width:1100px;margin:36px auto;padding:0 20px}
+.back-btn{display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:#FF6B2C;font-size:14px;font-weight:600;margin-bottom:24px;padding:0}
+.back-btn:hover{text-decoration:underline}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;background:#fff;border-radius:20px;padding:32px;box-shadow:0 4px 24px rgba(0,0,0,.08)}
+.detail-img{border-radius:14px;overflow:hidden;aspect-ratio:1/1;background:#f0f0f0}
+.detail-img img{width:100%;height:100%;object-fit:cover}
+.detail-info{display:flex;flex-direction:column;gap:16px}
+.detail-name{font-size:24px;font-weight:800;line-height:1.3}
+.detail-price{font-size:28px;font-weight:800;color:#FF6B2C}
+.detail-rating{display:flex;align-items:center;gap:8px;font-size:14px;color:#888}
+.detail-rating .stars{font-size:15px}
+.detail-desc{font-size:14.5px;color:#555;line-height:1.7;border-top:1px solid #f0f0f0;padding-top:16px}
+.qty-wrap{display:flex;align-items:center;gap:12px}
+.qty-wrap label{font-size:14px;font-weight:600}
+.qty-ctrl{display:flex;align-items:center;gap:0;border:1.5px solid #e8e8e8;border-radius:8px;overflow:hidden}
+.qty-ctrl button{width:36px;height:36px;background:none;border:none;font-size:18px;color:#555;transition:background .15s}
+.qty-ctrl button:hover{background:#f0f0f0}
+.qty-ctrl span{width:40px;text-align:center;font-weight:600}
+.btn-buy{padding:14px 32px;background:#FF6B2C;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;box-shadow:0 4px 16px rgba(255,107,44,.35);transition:background .2s}
+.btn-buy:hover{background:#e85c1f}
+.btn-wishlist{padding:14px;border:1.5px solid #e8e8e8;background:#fff;border-radius:12px;transition:border-color .2s}
+.btn-wishlist:hover{border-color:#FF6B2C}
+.btn-wishlist svg{stroke:#888;fill:none;width:20px;height:20px;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.detail-actions{display:flex;gap:12px;flex-wrap:wrap}
+
+/* ─── FOOTER ─── */
+footer{background:#1a1a2e;color:#aaa;margin-top:60px}
+.footer-inner{max-width:1280px;margin:auto;padding:40px 20px 24px;display:grid;grid-template-columns:2fr 1fr 1fr;gap:32px}
+.footer-brand .logo-text{color:#fff;font-size:22px;margin-bottom:10px;display:block}
+.footer-brand p{font-size:13.5px;line-height:1.7;max-width:260px}
+.footer-col h4{color:#fff;font-size:14px;font-weight:700;margin-bottom:14px}
+.footer-col ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.footer-col ul li a{font-size:13.5px;color:#888;transition:color .2s}
+.footer-col ul li a:hover{color:#FF6B2C}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.08);padding:18px 20px;text-align:center;font-size:13px;color:#555}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:900px){
+  .product-grid{grid-template-columns:repeat(2,1fr)}
+  .detail-grid{grid-template-columns:1fr}
+  .footer-inner{grid-template-columns:1fr 1fr}
+  .footer-brand{grid-column:1/-1}
+}
+@media(max-width:600px){
+  .hero{height:360px}
+  .search-wrap{max-width:none}
+  .logo-text{display:none}
+  .footer-inner{grid-template-columns:1fr}
+}
+@media(max-width:480px){
+  .product-grid{grid-template-columns:repeat(2,1fr);gap:12px}
+}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      <div class="logo-box">
+        <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59L5.25 14c-.16.28-.25.61-.25.96C5 16.1 5.9 17 7 17h14v-2H7.42a.25.25 0 0 1-.25-.25l.03-.12.9-1.63H19c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 23.46 4H5.21l-.94-2H1z"/></svg>
+      </div>
+      <span class="logo-text">ShopVN</span>
+    </a>
+    <div class="search-wrap">
+      <input id="search-input" type="text" placeholder="Tìm kiếm sản phẩm..."/>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
+    <div class="header-right">
+      <button class="cart-btn" onclick="alert('Giỏ hàng trống!')">
+        <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        <span class="cart-badge" id="cart-badge">0</span>
+      </button>
+      <button class="btn-login" onclick="window.location.href='auth.html'">Đăng nhập</button>
+    </div>
+  </div>
+</header>
+
+<!-- ══ HOME PAGE ══ -->
+<div id="page-home">
+
+  <!-- HERO -->
+  <section class="hero">
+    <img class="hero-bg" src="https://picsum.photos/seed/shopbanner/1600/600" alt="banner"/>
+    <div class="hero-content">
+      <div class="hero-badge">🔥 Siêu sale hôm nay</div>
+      <h1>Mua sắm <span>thả ga</span><br/>giá cả phải chăng</h1>
+      <p>Hàng ngàn sản phẩm chất lượng, giao hàng nhanh toàn quốc, hoàn tiền 100% nếu không hài lòng.</p>
+      <div class="hero-btns">
+        <button class="btn-hero-primary" onclick="document.getElementById('products').scrollIntoView({behavior:'smooth'})">Mua ngay</button>
+        <button class="btn-hero-secondary">Khám phá danh mục</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRODUCTS -->
+  <section class="section" id="products">
+    <div class="section-header">
+      <h2 class="section-title">Sản phẩm đề xuất</h2>
+      <a href="#" class="see-all">Xem tất cả</a>
+    </div>
+    <div class="product-grid" id="product-grid"></div>
+  </section>
+
+</div><!-- /page-home -->
+
+<!-- ══ DETAIL PAGE ══ -->
+<div id="page-detail">
+  <div class="detail-wrap">
+    <button class="back-btn" onclick="goHome()">
+      ← Quay lại trang chủ
+    </button>
+    <div class="detail-grid">
+      <div class="detail-img"><img id="d-img" src="" alt=""/></div>
+      <div class="detail-info">
+        <div>
+          <p style="font-size:13px;color:#888;margin-bottom:6px" id="d-cat">Danh mục</p>
+          <h1 class="detail-name" id="d-name"></h1>
+        </div>
+        <div class="detail-price" id="d-price"></div>
+        <div class="detail-rating">
+          <div class="stars" id="d-stars"></div>
+          <span id="d-review-count"></span>
+        </div>
+        <p class="detail-desc" id="d-desc"></p>
+        <div class="qty-wrap">
+          <label>Số lượng:</label>
+          <div class="qty-ctrl">
+            <button onclick="changeQty(-1)">−</button>
+            <span id="qty-val">1</span>
+            <button onclick="changeQty(1)">+</button>
+          </div>
+        </div>
+        <div class="detail-actions">
+          <button class="btn-buy" onclick="alert('Đã thêm vào giỏ hàng!')">🛒 Thêm vào giỏ</button>
+          <button class="btn-wishlist" title="Yêu thích"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="logo-text">ShopVN</span>
+      <p>Nền tảng mua sắm trực tuyến uy tín hàng đầu Việt Nam. Cam kết chất lượng, giá tốt nhất thị trường.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Hỗ trợ</h4>
+      <ul>
+        <li><a href="#">Trung tâm trợ giúp</a></li>
+        <li><a href="#">Theo dõi đơn hàng</a></li>
+        <li><a href="#">Chính sách đổi trả</a></li>
+        <li><a href="#">Liên hệ chúng tôi</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Về ShopVN</h4>
+      <ul>
+        <li><a href="#">Giới thiệu</a></li>
+        <li><a href="#">Tuyển dụng</a></li>
+        <li><a href="#">Blog</a></li>
+        <li><a href="#">Chính sách bảo mật</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">© 2026 ShopVN. All rights reserved.</div>
+</footer>
+
+<script>
+// ── Mock data ──
+const PRODUCTS = [
+  {id:1,name:'Áo thun nam basic oversize phong cách Hàn Quốc',price:189000,rating:4.8,reviews:1204,cat:'Thời trang',img:'https://picsum.photos/seed/p1/400/400',desc:'Chất liệu cotton 100% cao cấp, co giãn tốt, thoáng mát. Phù hợp mặc đi chơi, đi học. Form oversize rộng rãi, thoải mái.'},
+  {id:2,name:'Tai nghe Bluetooth không dây chống ồn ANC Pro',price:890000,rating:4.7,reviews:876,cat:'Điện tử',img:'https://picsum.photos/seed/p2/400/400',desc:'Âm thanh vòm 3D sống động, pin 40 giờ, kết nối Bluetooth 5.3 ổn định, chế độ chống ồn chủ động ANC tiên tiến.'},
+  {id:3,name:'Bình giữ nhiệt inox 316 500ml Lock&Lock',price:245000,rating:4.9,reviews:3102,cat:'Gia dụng',img:'https://picsum.photos/seed/p3/400/400',desc:'Inox 316 cao cấp không chứa BPA. Giữ nóng 12h, giữ lạnh 24h. Thiết kế sang trọng, dễ vệ sinh.'},
+  {id:4,name:'Giày sneaker nam nữ đế êm thoáng khí unisex',price:520000,rating:4.6,reviews:654,cat:'Giày dép',img:'https://picsum.photos/seed/p4/400/400',desc:'Đế giày cao su non chống trơn trượt, lớp lót khử mùi, thiết kế hiện đại phù hợp nhiều style trang phục.'},
+  {id:5,name:'Đèn bàn LED cảm ứng 3 chế độ sáng USB-C',price:320000,rating:4.5,reviews:421,cat:'Đồ dùng',img:'https://picsum.photos/seed/p5/400/400',desc:'3 chế độ ánh sáng (ấm/trung tính/lạnh), điều chỉnh độ sáng 5 cấp, tích hợp sạc không dây. Tiết kiệm điện.'},
+  {id:6,name:'Sách "Đắc Nhân Tâm" – Dale Carnegie bản mới 2024',price:78000,rating:4.9,reviews:5670,cat:'Sách',img:'https://picsum.photos/seed/p6/400/400',desc:'Cuốn sách bán chạy nhất mọi thời đại về nghệ thuật giao tiếp và ứng xử. Bản dịch mới nhất, in ấn sắc nét.'},
+  {id:7,name:'Bộ skincare dưỡng ẩm 5 bước cho da hỗn hợp',price:450000,rating:4.7,reviews:889,cat:'Mỹ phẩm',img:'https://picsum.photos/seed/p7/400/400',desc:'Gồm: sữa rửa mặt, nước hoa hồng, serum, kem dưỡng và kem chống nắng SPF50. Phù hợp da hỗn hợp thiên dầu.'},
+  {id:8,name:'Balo laptop chống nước 15.6" chống sốc',price:380000,rating:4.6,reviews:1023,cat:'Phụ kiện',img:'https://picsum.photos/seed/p8/400/400',desc:'Chất liệu polyester cao cấp chống thấm nước, ngăn laptop có đệm chống sốc, nhiều ngăn tiện lợi, thiết kế thời trang.'}
+];
+
+const fmt = n => new Intl.NumberFormat('vi-VN',{style:'currency',currency:'VND'}).format(n);
+const stars = r => '★'.repeat(Math.round(r)) + '☆'.repeat(5-Math.round(r));
+
+let qty = 1;
+
+function renderGrid(list){
+  const grid = document.getElementById('product-grid');
+  if(!list.length){ grid.innerHTML='<div class="no-result">Không tìm thấy sản phẩm nào.</div>'; return; }
+  grid.innerHTML = list.map(p=>`
+    <div class="card" onclick="showDetail(${p.id})">
+      <div class="card-img"><img src="${p.img}" alt="${p.name}" loading="lazy"/></div>
+      <div class="card-body">
+        <div class="card-name">${p.name}</div>
+        <div class="card-price">${fmt(p.price)}</div>
+        <div class="stars">${stars(p.rating)} <span>(${p.reviews.toLocaleString()})</span></div>
+        <button class="btn-cart" onclick="event.stopPropagation();alert('Đã thêm vào giỏ!')">+ Thêm vào giỏ</button>
+      </div>
+    </div>`).join('');
+}
+
+function showDetail(id){
+  const p = PRODUCTS.find(x=>x.id===id);
+  if(!p) return;
+  document.getElementById('d-img').src = p.img.replace('/400/400','/800/800');
+  document.getElementById('d-img').alt = p.name;
+  document.getElementById('d-cat').textContent = p.cat;
+  document.getElementById('d-name').textContent = p.name;
+  document.getElementById('d-price').textContent = fmt(p.price);
+  document.getElementById('d-stars').innerHTML = stars(p.rating) + ` <b>${p.rating}</b>`;
+  document.getElementById('d-review-count').textContent = `(${p.reviews.toLocaleString()} đánh giá)`;
+  document.getElementById('d-desc').textContent = p.desc;
+  qty = 1; document.getElementById('qty-val').textContent = 1;
+  document.getElementById('page-home').style.display='none';
+  document.getElementById('page-detail').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+  history.pushState({id},'',`?id=${id}`);
+}
+
+function goHome(){
+  document.getElementById('page-detail').style.display='none';
+  document.getElementById('page-home').style.display='block';
+  history.pushState({},'','?');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function changeQty(d){
+  qty = Math.max(1, qty+d);
+  document.getElementById('qty-val').textContent = qty;
+}
+
+// Search
+document.getElementById('search-input').addEventListener('input', function(){
+  const q = this.value.trim().toLowerCase();
+  renderGrid(q ? PRODUCTS.filter(p=>p.name.toLowerCase().includes(q)) : PRODUCTS);
+});
+
+// Init
+(function(){
+  const params = new URLSearchParams(location.search);
+  const id = parseInt(params.get('id'));
+  if(id) { renderGrid(PRODUCTS); showDetail(id); }
+  else renderGrid(PRODUCTS);
+})();
+
+window.addEventListener('popstate', e=>{
+  if(e.state && e.state.id) showDetail(e.state.id);
+  else goHome();
+});
+</script>
+</body>
+</html>

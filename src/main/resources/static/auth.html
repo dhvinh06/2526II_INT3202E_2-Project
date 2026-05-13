@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Đăng nhập / Đăng ký – ShopVN</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #fff5f0 0%, #ffe8db 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .wrapper {
+    width: 100%;
+    max-width: 440px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+  }
+
+  /* Logo */
+  .logo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo-icon {
+    width: 64px; height: 64px;
+    background: #FF6B2C;
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 24px rgba(255,107,44,.35);
+  }
+  .logo-icon svg { width: 36px; height: 36px; fill: #fff; }
+  .logo-name { font-size: 22px; font-weight: 700; color: #1a1a2e; letter-spacing: -.5px; }
+  .logo-sub  { font-size: 13px; color: #888; }
+
+  /* Card */
+  .card {
+    width: 100%;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 40px rgba(0,0,0,.09);
+    overflow: hidden;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .tab-btn {
+    padding: 16px;
+    border: none;
+    background: none;
+    font-size: 15px;
+    font-weight: 600;
+    color: #aaa;
+    cursor: pointer;
+    transition: color .2s, box-shadow .2s;
+  }
+  .tab-btn.active {
+    color: #FF6B2C;
+    box-shadow: inset 0 -3px 0 #FF6B2C;
+  }
+  .tab-btn:hover:not(.active) { color: #555; }
+
+  /* Panels */
+  .panel { display: none; padding: 32px 28px 28px; }
+  .panel.active { display: block; }
+
+  /* Alert */
+  .alert {
+    display: none;
+    padding: 11px 14px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    margin-bottom: 18px;
+    font-weight: 500;
+  }
+  .alert.error  { background: #fff1ee; color: #d63b0f; border: 1px solid #ffd2c2; }
+  .alert.success{ background: #edfff5; color: #1a8a4a; border: 1px solid #b8f0d0; }
+  .alert.show   { display: flex; align-items: center; gap: 8px; }
+
+  /* Form */
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 6px; }
+
+  .input-wrap { position: relative; }
+  .input-wrap input {
+    width: 100%;
+    padding: 12px 42px 12px 14px;
+    border: 1.5px solid #e8e8e8;
+    border-radius: 10px;
+    font-size: 14.5px;
+    font-family: inherit;
+    color: #1a1a2e;
+    transition: border-color .2s, box-shadow .2s;
+    outline: none;
+    background: #fafafa;
+  }
+  .input-wrap input:focus {
+    border-color: #FF6B2C;
+    box-shadow: 0 0 0 3px rgba(255,107,44,.12);
+    background: #fff;
+  }
+  .input-wrap input.invalid {
+    border-color: #e53e3e;
+    box-shadow: 0 0 0 3px rgba(229,62,62,.1);
+  }
+  .eye-btn {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer; color: #bbb;
+    display: flex; padding: 4px;
+    transition: color .2s;
+  }
+  .eye-btn:hover { color: #FF6B2C; }
+  .err-msg { font-size: 12px; color: #e53e3e; margin-top: 5px; display: none; }
+
+  /* Submit button */
+  .btn-submit {
+    width: 100%;
+    padding: 14px;
+    background: #FF6B2C;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+    letter-spacing: .3px;
+    transition: background .2s, transform .1s, box-shadow .2s;
+    box-shadow: 0 4px 16px rgba(255,107,44,.3);
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-submit:hover  { background: #e85c1f; box-shadow: 0 6px 20px rgba(255,107,44,.4); }
+  .btn-submit:active { transform: scale(.98); }
+  .btn-submit:disabled { background: #ffb899; cursor: not-allowed; box-shadow: none; }
+
+  /* Spinner */
+  .spinner {
+    display: none;
+    width: 18px; height: 18px;
+    border: 2.5px solid rgba(255,255,255,.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
+  }
+  .btn-submit.loading .spinner { display: block; }
+  @keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
+
+  .divider { text-align: center; font-size: 13px; color: #ccc; margin: 20px 0 4px; }
+  .switch-link { text-align: center; font-size: 13.5px; color: #777; }
+  .switch-link a { color: #FF6B2C; font-weight: 600; text-decoration: none; }
+  .switch-link a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Logo -->
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59L5.25 14c-.16.28-.25.61-.25.96C5 16.1 5.9 17 7 17h14v-2H7.42a.25.25 0 0 1-.25-.25l.03-.12.9-1.63H19c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 23.46 4H5.21l-.94-2H1z"/></svg>
+    </div>
+    <span class="logo-name">ShopVN</span>
+    <span class="logo-sub">Mua sắm thả ga – Giá cả phải chăng</span>
+  </div>
+
+  <!-- Card -->
+  <div class="card">
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-login"    onclick="switchTab('login')">Đăng nhập</button>
+      <button class="tab-btn"        id="tab-register" onclick="switchTab('register')">Đăng ký</button>
+    </div>
+
+    <!-- ===== LOGIN PANEL ===== -->
+    <div class="panel active" id="panel-login">
+      <div class="alert error"   id="login-err"></div>
+      <div class="alert success" id="login-ok"></div>
+
+      <form id="form-login" onsubmit="doLogin(event)">
+        <div class="form-group">
+          <label for="l-email">Email</label>
+          <div class="input-wrap">
+            <input id="l-email" type="email" placeholder="example@email.com" autocomplete="email"/>
+          </div>
+          <div class="err-msg" id="l-email-err">Email không hợp lệ.</div>
+        </div>
+
+        <div class="form-group">
+          <label for="l-pass">Mật khẩu</label>
+          <div class="input-wrap">
+            <input id="l-pass" type="password" placeholder="Ít nhất 6 ký tự" autocomplete="current-password"/>
+            <button type="button" class="eye-btn" onclick="toggleEye('l-pass',this)" aria-label="Hiện mật khẩu">
+              <svg id="l-pass-eye" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="err-msg" id="l-pass-err">Mật khẩu ít nhất 6 ký tự.</div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="btn-login">
+          Đăng nhập
+          <span class="spinner"></span>
+        </button>
+      </form>
+
+      <div class="divider">Chưa có tài khoản?</div>
+      <div class="switch-link"><a href="#" onclick="switchTab('register');return false;">Đăng ký ngay</a></div>
+    </div>
+
+    <!-- ===== REGISTER PANEL ===== -->
+    <div class="panel" id="panel-register">
+      <div class="alert error"   id="reg-err"></div>
+      <div class="alert success" id="reg-ok"></div>
+
+      <form id="form-register" onsubmit="doRegister(event)">
+        <div class="form-group">
+          <label for="r-name">Họ và tên</label>
+          <div class="input-wrap">
+            <input id="r-name" type="text" placeholder="Nguyễn Văn A" autocomplete="name"/>
+          </div>
+          <div class="err-msg" id="r-name-err">Vui lòng nhập họ tên.</div>
+        </div>
+
+        <div class="form-group">
+          <label for="r-email">Email</label>
+          <div class="input-wrap">
+            <input id="r-email" type="email" placeholder="example@email.com" autocomplete="email"/>
+          </div>
+          <div class="err-msg" id="r-email-err">Email không hợp lệ.</div>
+        </div>
+
+        <div class="form-group">
+          <label for="r-pass">Mật khẩu</label>
+          <div class="input-wrap">
+            <input id="r-pass" type="password" placeholder="Ít nhất 6 ký tự" autocomplete="new-password"/>
+            <button type="button" class="eye-btn" onclick="toggleEye('r-pass',this)" aria-label="Hiện mật khẩu">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="err-msg" id="r-pass-err">Mật khẩu ít nhất 6 ký tự.</div>
+        </div>
+
+        <div class="form-group">
+          <label for="r-confirm">Xác nhận mật khẩu</label>
+          <div class="input-wrap">
+            <input id="r-confirm" type="password" placeholder="Nhập lại mật khẩu" autocomplete="new-password"/>
+            <button type="button" class="eye-btn" onclick="toggleEye('r-confirm',this)" aria-label="Hiện mật khẩu">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="err-msg" id="r-confirm-err">Mật khẩu xác nhận không khớp.</div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="btn-register">
+          Đăng ký
+          <span class="spinner"></span>
+        </button>
+      </form>
+
+      <div class="divider">Đã có tài khoản?</div>
+      <div class="switch-link"><a href="#" onclick="switchTab('login');return false;">Đăng nhập</a></div>
+    </div>
+  </div><!-- /card -->
+</div>
+
+<script>
+  const API = '';  // same-origin; đổi thành 'http://localhost:8080' nếu cần
+
+  /* ── Tab switching ── */
+  function switchTab(tab) {
+    ['login','register'].forEach(t => {
+      document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+      document.getElementById('panel-' + t).classList.toggle('active', t === tab);
+    });
+    clearAlerts();
+  }
+
+  function clearAlerts() {
+    document.querySelectorAll('.alert').forEach(el => {
+      el.classList.remove('show'); el.textContent = '';
+    });
+    document.querySelectorAll('.input-wrap input').forEach(el => el.classList.remove('invalid'));
+    document.querySelectorAll('.err-msg').forEach(el => el.style.display = 'none');
+  }
+
+  /* ── Eye toggle ── */
+  function toggleEye(inputId, btn) {
+    const inp = document.getElementById(inputId);
+    const isHidden = inp.type === 'password';
+    inp.type = isHidden ? 'text' : 'password';
+    btn.querySelector('svg').innerHTML = isHidden
+      ? '<line x1="1" y1="1" x2="23" y2="23"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 11 7 11 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 1 12s4 7 11 7a9.74 9.74 0 0 0 5.39-1.61"/><circle cx="12" cy="12" r="3"/>'
+      : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  }
+
+  /* ── Validate helpers ── */
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  function fieldError(inputId, errId, msg) {
+    const inp = document.getElementById(inputId);
+    const err = document.getElementById(errId);
+    inp.classList.add('invalid');
+    err.textContent = msg;
+    err.style.display = 'block';
+    return false;
+  }
+
+  function fieldOk(inputId, errId) {
+    document.getElementById(inputId).classList.remove('invalid');
+    document.getElementById(errId).style.display = 'none';
+    return true;
+  }
+
+  function showAlert(id, type, msg) {
+    const el = document.getElementById(id);
+    el.className = 'alert ' + type + ' show';
+    el.textContent = msg;
+  }
+
+  function setLoading(btnId, on) {
+    const btn = document.getElementById(btnId);
+    btn.disabled = on;
+    btn.classList.toggle('loading', on);
+    btn.childNodes[0].textContent = on
+      ? (btnId === 'btn-login' ? ' Đang đăng nhập…' : ' Đang xử lý…')
+      : (btnId === 'btn-login' ? 'Đăng nhập' : 'Đăng ký');
+  }
+
+  /* ── LOGIN ── */
+  async function doLogin(e) {
+    e.preventDefault();
+    clearAlerts();
+
+    const email    = document.getElementById('l-email').value.trim();
+    const password = document.getElementById('l-pass').value;
+
+    let ok = true;
+    if (!emailRe.test(email))  { fieldError('l-email','l-email-err','Email không hợp lệ.'); ok = false; }
+    else fieldOk('l-email','l-email-err');
+
+    if (password.length < 6)   { fieldError('l-pass','l-pass-err','Mật khẩu ít nhất 6 ký tự.'); ok = false; }
+    else fieldOk('l-pass','l-pass-err');
+
+    if (!ok) return;
+
+    setLoading('btn-login', true);
+    try {
+      const res = await fetch(API + '/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      if (res.status === 401) {
+        showAlert('login-err', 'error', '⚠ Sai email hoặc mật khẩu.');
+        return;
+      }
+      if (!res.ok) {
+        showAlert('login-err', 'error', '⚠ Đã xảy ra lỗi. Vui lòng thử lại.');
+        return;
+      }
+
+      const user = await res.json();
+      localStorage.setItem('user', JSON.stringify({
+        id: user.id, name: user.name, role: user.role, email: user.email
+      }));
+      window.location.href = '/index.html';
+
+    } catch (err) {
+      showAlert('login-err', 'error', '⚠ Không kết nối được máy chủ.');
+    } finally {
+      setLoading('btn-login', false);
+    }
+  }
+
+  /* ── REGISTER ── */
+  async function doRegister(e) {
+    e.preventDefault();
+    clearAlerts();
+
+    const name     = document.getElementById('r-name').value.trim();
+    const email    = document.getElementById('r-email').value.trim();
+    const password = document.getElementById('r-pass').value;
+    const confirm  = document.getElementById('r-confirm').value;
+
+    let ok = true;
+    if (!name)                 { fieldError('r-name','r-name-err','Vui lòng nhập họ tên.'); ok = false; }
+    else fieldOk('r-name','r-name-err');
+
+    if (!emailRe.test(email))  { fieldError('r-email','r-email-err','Email không hợp lệ.'); ok = false; }
+    else fieldOk('r-email','r-email-err');
+
+    if (password.length < 6)   { fieldError('r-pass','r-pass-err','Mật khẩu ít nhất 6 ký tự.'); ok = false; }
+    else fieldOk('r-pass','r-pass-err');
+
+    if (confirm !== password)  { fieldError('r-confirm','r-confirm-err','Mật khẩu xác nhận không khớp.'); ok = false; }
+    else fieldOk('r-confirm','r-confirm-err');
+
+    if (!ok) return;
+
+    setLoading('btn-register', true);
+    try {
+      const res = await fetch(API + '/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      });
+
+      if (res.status === 409) {
+        showAlert('reg-err', 'error', '⚠ Email này đã được sử dụng.');
+        return;
+      }
+      if (!res.ok) {
+        showAlert('reg-err', 'error', '⚠ Đã xảy ra lỗi. Vui lòng thử lại.');
+        return;
+      }
+
+      document.getElementById('form-register').reset();
+      switchTab('login');
+      showAlert('login-ok', 'success', '✓ Đăng ký thành công! Vui lòng đăng nhập.');
+
+    } catch (err) {
+      showAlert('reg-err', 'error', '⚠ Không kết nối được máy chủ.');
+    } finally {
+      setLoading('btn-register', false);
+    }
+  }
+</script>
+</body>
+</html>
