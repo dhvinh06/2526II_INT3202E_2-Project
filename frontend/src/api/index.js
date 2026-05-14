@@ -1,8 +1,6 @@
-import axiosInstance from './axiosInstance'
+import axios from './axios'
 
-/**
- * Hàm hỗ trợ xử lý lỗi chung cho các API
- */
+
 const handleError = (error) => {
   if (error.response) {
     // Lỗi từ phía server trả về (status code 4xx, 5xx)
@@ -28,14 +26,14 @@ const handleError = (error) => {
 export const authAPI = {
   login: async ({ email, password }) => {
     try {
-      const res = await axiosInstance.post('/api/auth/login', { email, password })
+      const res = await axios.post('/auth/login', { email, password })
       return res.data
     } catch (err) { handleError(err) }
   },
   
   register: async ({ name, email, password }) => {
     try {
-      const res = await axiosInstance.post('/api/auth/register', { name, email, password })
+      const res = await axios.post('/auth/register', { name, email, password })
       return res.data
     } catch (err) { handleError(err) }
   }
@@ -44,21 +42,21 @@ export const authAPI = {
 export const userAPI = {
   getProfile: async (id) => {
     try {
-      const res = await axiosInstance.get(`/api/users/${id}`)
+      const res = await axios.get(`/users/${id}`)
       return res.data
     } catch (err) { handleError(err) }
   },
 
   updateProfile: async (id, data) => {
     try {
-      const res = await axiosInstance.put(`/api/users/${id}`, data)
+      const res = await axios.put(`/users/${id}`, data)
       return res.data
     } catch (err) { handleError(err) }
   },
 
   changePassword: async (id, data) => {
     try {
-      const res = await axiosInstance.put(`/api/users/${id}/password`, data)
+      const res = await axios.put(`/users/${id}/password`, data)
       return res.data
     } catch (err) { handleError(err) }
   }
@@ -67,14 +65,14 @@ export const userAPI = {
 export const productAPI = {
   getProducts: async (params) => {
     try {
-      const res = await axiosInstance.get('/api/products', { params })
+      const res = await axios.get('/products', { params })
       return res.data
     } catch (err) { handleError(err) }
   },
 
   getProductById: async (id) => {
     try {
-      const res = await axiosInstance.get(`/api/products/${id}`)
+      const res = await axios.get(`/products/${id}`)
       return res.data
     } catch (err) { handleError(err) }
   }
@@ -83,14 +81,14 @@ export const productAPI = {
 export const cartAPI = {
   addToCart: async (data) => {
     try {
-      const res = await axiosInstance.post('/api/cart-items', data)
+      const res = await axios.post('/cart-items', data)
       return res.data
     } catch (err) { handleError(err) }
   },
 
   getCart: async (userId) => {
     try {
-      const res = await axiosInstance.get(`/api/cart-items/${userId}`)
+      const res = await axios.get(`/cart-items/${userId}`)
       return res.data
     } catch (err) { handleError(err) }
   }
@@ -99,7 +97,7 @@ export const cartAPI = {
 export const orderAPI = {
   checkout: async (userId, data) => {
     try {
-      const res = await axiosInstance.post(`/api/orders/checkout/${userId}`, data)
+      const res = await axios.post(`/orders/checkout/${userId}`, data)
       return res.data
     } catch (err) { handleError(err) }
   }
