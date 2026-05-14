@@ -8,17 +8,24 @@ import com.example.dbms.exception.ApiException;
 import com.example.dbms.exception.ErrorCode;
 import com.example.dbms.repository.RoleRepository;
 import com.example.dbms.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
 public class AuthService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+
+    @Value("${app.admin-secret}")
+    private String adminSecret;
+
+    private static final List<String> VALID_ROLES = List.of("CUSTOMER", "SELLER", "ADMIN");
 
     public AuthService(UserRepository userRepository, RoleRepository roleRepository) {
         this.userRepository = userRepository;
@@ -41,16 +48,27 @@ public class AuthService {
             throw new ApiException(ErrorCode.CONFLICT, HttpStatus.CONFLICT, "Email is already taken");
         }
 
-        Role customerRole = roleRepository.findByName("CUSTOMER")
-                .orElseThrow(() -> new ApiException(ErrorCode.INTERNAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR, "Default role not found"));
+        String roleName = req.getRole() == null ? "CUSTOMER" : req.getRole().toUpperCase();
+
+        if (!VALID_ROLES.contains(roleName)) {
+            throw new ApiException(ErrorCode.BAD_REQUEST, HttpStatus.BAD_REQUEST, "Invalid role");
+        }
+
+        if ("ADMIN".equals(roleName)) {
+            if (req.getAdminSecret() == null || !req.getAdminSecret().equals(adminSecret)) {
+                throw new ApiException(ErrorCode.UNAUTHORIZED, HttpStatus.UNAUTHORIZED, "Mã xác nhận admin không đúng");
+            }
+        }
+
+        Role role = roleRepository.findByName(roleName)
+                .orElseThrow(() -> new ApiException(ErrorCode.INTERNAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR, "Role not found"));
 
         User newUser = new User();
         newUser.setName(req.getName());
         newUser.setEmail(req.getEmail());
-        newUser.setPassword(req.getPassword()); // Storing plain text for now
+        newUser.setPassword(req.getPassword());
         newUser.setCreatedAt(Instant.now());
-        newUser.setRole(customerRole);
-
+        newUser.setRole(role);
         return mapUser(userRepository.save(newUser));
     }
 

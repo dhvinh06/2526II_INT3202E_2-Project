@@ -104,28 +104,34 @@ function RegisterForm({ onSuccess }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  
+  const [role, setRole] = useState('CUSTOMER')
+  const [adminSecret, setAdminSecret] = useState('')
+
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
-  
+  const [showSecret, setShowSecret] = useState(false)
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [fieldErrors, setFieldErrors] = useState({})
 
+  const ROLES = [
+    { value: 'CUSTOMER', label: 'Khách hàng' },
+    { value: 'SELLER',   label: 'Người bán'  },
+    { value: 'ADMIN',    label: 'Quản trị viên'   },
+  ]
+
   const validate = () => {
     const errs = {}
     if (!name.trim()) errs.name = 'Vui lòng nhập họ tên'
-    
     if (!email) errs.email = 'Vui lòng nhập email'
     else if (!emailRegex.test(email)) errs.email = 'Email không đúng định dạng'
-    
     if (!password) errs.password = 'Vui lòng nhập mật khẩu'
     else if (password.length < 6) errs.password = 'Mật khẩu ít nhất 6 ký tự'
-    
     if (!confirmPassword) errs.confirmPassword = 'Vui lòng xác nhận mật khẩu'
     else if (confirmPassword !== password) errs.confirmPassword = 'Mật khẩu xác nhận không khớp'
-
+    if (role === 'ADMIN' && !adminSecret.trim()) errs.adminSecret = 'Vui lòng nhập mã xác nhận'
     setFieldErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -135,14 +141,11 @@ function RegisterForm({ onSuccess }) {
     setError('')
     setSuccess('')
     if (!validate()) return
-
     setLoading(true)
     try {
-      await authAPI.register({ name, email, password })
+      await authAPI.register({ name, email, password, role, adminSecret: role === 'ADMIN' ? adminSecret : undefined })
       setSuccess('Đăng ký thành công!')
-      setTimeout(() => {
-        onSuccess()
-      }, 1500)
+      setTimeout(() => onSuccess(), 1500)
     } catch (err) {
       setError(err.message || 'Đã có lỗi xảy ra, thử lại sau')
     } finally {
@@ -151,58 +154,61 @@ function RegisterForm({ onSuccess }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className={styles.form}>
-      {error && <div className={styles.alertError}>{error}</div>}
-      {success && <div className={styles.alertSuccess}>{success}</div>}
+      <form onSubmit={handleSubmit} className={styles.form}>
+        {error   && <div className={styles.alertError}>{error}</div>}
+        {success && <div className={styles.alertSuccess}>{success}</div>}
 
-      <InputGroup 
-        label="Họ tên" 
-        value={name} 
-        onChange={setName} 
-        error={fieldErrors.name}
-        placeholder="Nguyễn Văn A"
-      />
+        {/* Role selector */}
+        <div className={styles.formGroup}>
+          <label>Loại tài khoản</label>
+          <div className={styles.roleSegment}>
+            {ROLES.map(r => (
+                <button
+                    key={r.value}
+                    type="button"
+                    className={`${styles.roleBtn} ${role === r.value ? styles.roleActive : ''}`}
+                    onClick={() => { setRole(r.value); setAdminSecret('') }}
+                >
+                  {r.label}
+                </button>
+            ))}
+          </div>
+        </div>
 
-      <InputGroup 
-        label="Email" 
-        value={email} 
-        onChange={setEmail} 
-        error={fieldErrors.email}
-        placeholder="example@email.com"
-      />
-      
-      <InputGroup 
-        label="Mật khẩu" 
-        type={showPassword ? 'text' : 'password'}
-        value={password} 
-        onChange={setPassword} 
-        error={fieldErrors.password}
-        placeholder="Ít nhất 6 ký tự"
-        rightAction={
-          <button type="button" className={styles.eyeBtn} onClick={() => setShowPassword(!showPassword)}>
-            <EyeIcon show={showPassword} />
-          </button>
-        }
-      />
+        {/* Admin secret — chỉ hiện khi chọn ADMIN */}
+        {role === 'ADMIN' && (
+            <InputGroup
+                label="Mã xác nhận Admin"
+                type={showSecret ? 'text' : 'password'}
+                value={adminSecret}
+                onChange={setAdminSecret}
+                error={fieldErrors.adminSecret}
+                placeholder="Nhập mã bí mật"
+                rightAction={
+                  <button type="button" className={styles.eyeBtn} onClick={() => setShowSecret(v => !v)}>
+                    <EyeIcon show={showSecret} />
+                  </button>
+                }
+            />
+        )}
 
-      <InputGroup 
-        label="Xác nhận mật khẩu" 
-        type={showConfirm ? 'text' : 'password'}
-        value={confirmPassword} 
-        onChange={setConfirmPassword} 
-        error={fieldErrors.confirmPassword}
-        placeholder="Nhập lại mật khẩu"
-        rightAction={
-          <button type="button" className={styles.eyeBtn} onClick={() => setShowConfirm(!showConfirm)}>
-            <EyeIcon show={showConfirm} />
-          </button>
-        }
-      />
+        <InputGroup label="Họ tên" value={name} onChange={setName}
+                    error={fieldErrors.name} placeholder="Nguyễn Văn A" />
+        <InputGroup label="Email" value={email} onChange={setEmail}
+                    error={fieldErrors.email} placeholder="example@email.com" />
+        <InputGroup label="Mật khẩu" type={showPassword ? 'text' : 'password'}
+                    value={password} onChange={setPassword} error={fieldErrors.password}
+                    placeholder="Ít nhất 6 ký tự"
+                    rightAction={<button type="button" className={styles.eyeBtn} onClick={() => setShowPassword(v => !v)}><EyeIcon show={showPassword} /></button>} />
+        <InputGroup label="Xác nhận mật khẩu" type={showConfirm ? 'text' : 'password'}
+                    value={confirmPassword} onChange={setConfirmPassword} error={fieldErrors.confirmPassword}
+                    placeholder="Nhập lại mật khẩu"
+                    rightAction={<button type="button" className={styles.eyeBtn} onClick={() => setShowConfirm(v => !v)}><EyeIcon show={showConfirm} /></button>} />
 
-      <button type="submit" className={styles.submitBtn} disabled={loading || success}>
-        {loading ? 'Đang xử lý...' : 'Đăng ký'}
-      </button>
-    </form>
+        <button type="submit" className={styles.submitBtn} disabled={loading || !!success}>
+          {loading ? 'Đang xử lý...' : 'Đăng ký'}
+        </button>
+      </form>
   )
 }
 

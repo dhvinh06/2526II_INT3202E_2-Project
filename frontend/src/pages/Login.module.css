@@ -175,3 +175,31 @@
   opacity: 0.7;
   cursor: not-allowed;
 }
+
+.roleSegment {
+  display: flex;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.roleBtn {
+  flex: 1;
+  padding: 8px 0;
+  border: none;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.roleBtn:not(:last-child) {
+  border-right: 1px solid #e2e8f0;
+}
+
+.roleActive {
+  background: #3b82f6;
+  color: #fff;
+  font-weight: 600;
+}

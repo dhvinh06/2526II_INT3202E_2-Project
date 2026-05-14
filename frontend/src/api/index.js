@@ -15,10 +15,8 @@ const handleError = (error) => {
     
     throw new Error(msg || 'Đã có lỗi xảy ra. Vui lòng thử lại.');
   } else if (error.request) {
-    // Không nhận được phản hồi từ server
     throw new Error('Không thể kết nối đến máy chủ. Vui lòng kiểm tra mạng.');
   } else {
-    // Lỗi setup request
     throw new Error('Đã xảy ra lỗi hệ thống.');
   }
 }
@@ -30,13 +28,13 @@ export const authAPI = {
       return res.data
     } catch (err) { handleError(err) }
   },
-  
-  register: async ({ name, email, password }) => {
+
+  register: async ({ name, email, password, role, adminSecret }) => {
     try {
-      const res = await axios.post('/auth/register', { name, email, password })
+      const res = await axios.post('/auth/register', { name, email, password, role, adminSecret })
       return res.data
     } catch (err) { handleError(err) }
-  }
+  },
 }
 
 export const userAPI = {
