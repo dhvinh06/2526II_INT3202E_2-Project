@@ -28,7 +28,6 @@ export const authAPI = {
       return res.data
     } catch (err) { handleError(err) }
   },
-
   register: async ({ name, email, password, role, adminSecret }) => {
     try {
       const res = await axios.post('/auth/register', { name, email, password, role, adminSecret })
@@ -76,6 +75,14 @@ export const productAPI = {
   }
 }
 
+export const categoryAPI = {
+  getAll: async () => {
+    try {
+      const res = await axios.get('/categories')
+      return res.data
+    } catch (err) { handleError(err) }
+  }
+}
 export const cartAPI = {
   addToCart: async (data) => {
     try {

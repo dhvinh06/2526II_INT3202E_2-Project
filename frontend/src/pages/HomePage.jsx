@@ -1,9 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import ProductCard from '../components/ProductCard'
+import { productAPI } from '../api/index'
 import styles from './HomePage.module.css'
 
-//Mock data: 12 sản phẩm
+// Fallback mock data — chỉ dùng khi API chưa có dữ liệu (demo/dev)
 const MOCK_PRODUCTS = [
   { id: 1, name: 'Áo thun nam basic oversize Hàn Quốc', category: 'Thời trang', price: 149000, originalPrice: 220000, rating: 4.8, sold: 2104, image: 'https://picsum.photos/seed/pr1/400/400' },
   { id: 2, name: 'Tai nghe Bluetooth ANC chống ồn', category: 'Điện tử', price: 890000, originalPrice: 1290000, rating: 4.7, sold: 687, image: 'https://picsum.photos/seed/pr2/400/400' },
@@ -29,109 +30,116 @@ const CATEGORIES = [
 ]
 
 export default function HomePage() {
-  const navigate = useNavigate();
-  const [products, setProducts] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const navigate = useNavigate()
+  const [products, setProducts] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/products');
-
-        if (!response.ok) {
-          throw new Error('HTTP error! status: ' + response.status);
-        }
-
-        const data = await response.json();
-        setProducts(data);
+        const data = await productAPI.getProducts()
+        // Nếu API trả về rỗng hoặc lỗi silent → fallback mock
+        setProducts(data?.length > 0 ? data : MOCK_PRODUCTS)
       } catch (err) {
-        setError(err.message);
+        setError(err.message)
+        setProducts(MOCK_PRODUCTS) // fallback để trang không trắng khi demo
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    fetchProducts();
-  }, []);
+    fetchProducts()
+  }, [])
 
-  const recommendedProducts = MOCK_PRODUCTS.slice(0, 8)
-  
-  // 8 sản phẩm bán chạy (sort theo sold giảm dần)
-  const bestSellers = [...MOCK_PRODUCTS].sort((a, b) => b.sold - a.sold).slice(0, 8)
+  // Dùng `products` state thật (từ API hoặc fallback mock)
+  const recommendedProducts = products.slice(0, 8)
+
+  // ⚠️ Sort theo `sold` — cần backend trả về field `sold` trong Product entity
+  // Nếu không có `sold`, thay bằng: [...products].sort((a, b) => b.rating - a.rating)
+  const bestSellers = [...products].sort((a, b) => (b.sold ?? 0) - (a.sold ?? 0)).slice(0, 8)
 
   return (
-    <div className={styles.page}>
-      
-      {/* 1. HERO BANNER */}
-      <section className={styles.hero}>
-        <div className={styles.heroContent}>
-          <div className={styles.heroBadge}>🔥 Khuyến mãi siêu khủng</div>
-          <h1 className={styles.heroTitle}>
-            Mua sắm thả ga<br/>
-            <span>giá cả phải chăng</span>
-          </h1>
-          <p className={styles.heroDesc}>
-            Hàng ngàn sản phẩm chất lượng, giao hàng nhanh toàn quốc, hoàn tiền 100% nếu không hài lòng.
-          </p>
-          <button className={styles.heroBtn} onClick={() => navigate('/products')}>
-            Khám phá ngay
-          </button>
-        </div>
-        <div className={styles.heroImage}>
-          <img src="https://picsum.photos/seed/hero/600/400" alt="Hero Banner" />
-        </div>
-      </section>
+      <div className={styles.page}>
 
-      {/* 2. DANH MỤC NỔI BẬT */}
-      <section className={styles.container}>
-        <h2 className={styles.sectionTitle}>Danh mục nổi bật</h2>
-        <div className={styles.categoryRow}>
-          {CATEGORIES.map(cat => (
-            <div key={cat.id} className={styles.categoryItem} onClick={() => navigate(`/products?category=${cat.id}`)}>
-              <div className={styles.catIcon}>{cat.icon}</div>
-              <div className={styles.catName}>{cat.name}</div>
-            </div>
-          ))}
-        </div>
-      </section>
+        {/* 1. HERO BANNER */}
+        <section className={styles.hero}>
+          <div className={styles.heroContent}>
+            <div className={styles.heroBadge}>🔥 Khuyến mãi siêu khủng</div>
+            <h1 className={styles.heroTitle}>
+              Mua sắm thả ga<br />
+              <span>giá cả phải chăng</span>
+            </h1>
+            <p className={styles.heroDesc}>
+              Hàng ngàn sản phẩm chất lượng, giao hàng nhanh toàn quốc, hoàn tiền 100% nếu không hài lòng.
+            </p>
+            <button className={styles.heroBtn} onClick={() => navigate('/products')}>
+              Khám phá ngay
+            </button>
+          </div>
+          <div className={styles.heroImage}>
+            <img src="https://picsum.photos/seed/hero/600/400" alt="Hero Banner" />
+          </div>
+        </section>
 
-      {/* 3. SẢN PHẨM ĐỀ XUẤT */}
-      <section className={styles.container}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Sản phẩm đề xuất</h2>
-          <Link to="/products" className={styles.seeAll}>Xem tất cả</Link>
-        </div>
-        <div className={styles.grid}>
-          {recommendedProducts.map(p => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
-      </section>
+        {/* 2. DANH MỤC NỔI BẬT */}
+        <section className={styles.container}>
+          <h2 className={styles.sectionTitle}>Danh mục nổi bật</h2>
+          <div className={styles.categoryRow}>
+            {CATEGORIES.map(cat => (
+                <div key={cat.id} className={styles.categoryItem} onClick={() => navigate(`/products?category=${cat.id}`)}>
+                  <div className={styles.catIcon}>{cat.icon}</div>
+                  <div className={styles.catName}>{cat.name}</div>
+                </div>
+            ))}
+          </div>
+        </section>
 
-      <section className={styles.midBanner}>
-        <div className={styles.midBannerContent}>
-          <h2>Giảm giá đến 50% cho thành viên mới</h2>
-          <p>Đăng ký tài khoản ngay hôm nay để nhận vô vàn ưu đãi hấp dẫn từ ShopVN.</p>
-          <button className={styles.midBannerBtn} onClick={() => navigate('/login')}>
-            Đăng ký ngay
-          </button>
-        </div>
-      </section>
+        {/* 3. SẢN PHẨM ĐỀ XUẤT */}
+        <section className={styles.container}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Sản phẩm đề xuất</h2>
+            <Link to="/products" className={styles.seeAll}>Xem tất cả</Link>
+          </div>
 
-      {/* 5. SẢN PHẨM BÁN CHẠY */}
-      <section className={styles.container}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Sản phẩm bán chạy</h2>
-          <Link to="/products?sort=bestseller" className={styles.seeAll}>Xem tất cả</Link>
-        </div>
-        <div className={styles.grid}>
-          {bestSellers.map(p => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
-      </section>
+          {isLoading && <p>Đang tải sản phẩm...</p>}
+          {!isLoading && error && <p style={{ color: 'red' }}>Lỗi: {error}</p>}
+          {!isLoading && (
+              <div className={styles.grid}>
+                {recommendedProducts.map(p => (
+                    <ProductCard key={p.id} product={p} />
+                ))}
+              </div>
+          )}
+        </section>
 
-    </div>
+        {/* 4. MID BANNER */}
+        <section className={styles.midBanner}>
+          <div className={styles.midBannerContent}>
+            <h2>Giảm giá đến 50% cho thành viên mới</h2>
+            <p>Đăng ký tài khoản ngay hôm nay để nhận vô vàn ưu đãi hấp dẫn từ ShopVN.</p>
+            <button className={styles.midBannerBtn} onClick={() => navigate('/login')}>
+              Đăng ký ngay
+            </button>
+          </div>
+        </section>
+
+        {/* 5. SẢN PHẨM BÁN CHẠY */}
+        <section className={styles.container}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Sản phẩm bán chạy</h2>
+            <Link to="/products?sort=bestseller" className={styles.seeAll}>Xem tất cả</Link>
+          </div>
+
+          {!isLoading && (
+              <div className={styles.grid}>
+                {bestSellers.map(p => (
+                    <ProductCard key={p.id} product={p} />
+                ))}
+              </div>
+          )}
+        </section>
+
+      </div>
   )
 }
