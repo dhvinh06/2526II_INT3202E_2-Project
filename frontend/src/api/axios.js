@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api'
+    baseURL: 'https://two526ii-int3202e-2-project.onrender.com/api'
 });
 
 export default api;
