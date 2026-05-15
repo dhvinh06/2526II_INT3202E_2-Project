@@ -12,6 +12,9 @@ import com.example.dbms.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -46,7 +49,16 @@ public class ReviewService {
         r.setUser(user);
         r.setRating(req.getRating());
         r.setComment(req.getComment());
-        return toMap(reviewRepository.save(r));
+        r.setCreatedAt(Instant.now());
+        Review saved = reviewRepository.save(r);
+
+        // Cập nhật lại rating trung bình của sản phẩm
+        List<Review> allReviews = reviewRepository.findByProductId(req.getProductId());
+        double avg = allReviews.stream().mapToInt(Review::getRating).average().orElse(0);
+        product.setRating(BigDecimal.valueOf(avg).setScale(1, RoundingMode.HALF_UP));
+        productRepository.save(product);
+
+        return toMap(saved);
     }
 
     public List<Map<String, Object>> byProduct(Integer productId) {
@@ -62,6 +74,7 @@ public class ReviewService {
         m.put("id", r.getId());
         m.put("productId", r.getProduct().getId());
         m.put("userId", r.getUser().getId());
+        m.put("userName", r.getUser().getName());
         m.put("rating", r.getRating());
         m.put("comment", r.getComment());
         m.put("createdAt", r.getCreatedAt());

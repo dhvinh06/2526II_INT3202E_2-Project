@@ -435,6 +435,90 @@
   gap: 20px;
 }
 
+/* Form gửi đánh giá */
+.reviewFormWrap {
+  margin-top: 16px;
+  padding-top: 24px;
+  border-top: 2px dashed var(--gray-200);
+}
+
+.reviewFormTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+.reviewForm {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.starPicker {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.starPickerStar {
+  transition: transform 0.1s;
+  user-select: none;
+}
+
+.starPickerStar:hover {
+  transform: scale(1.2);
+}
+
+.reviewTextarea {
+  width: 100%;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text);
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.reviewTextarea:focus {
+  border-color: var(--primary);
+}
+
+.reviewError {
+  font-size: 13px;
+  color: #e53e3e;
+  margin: 0;
+}
+
+.reviewSuccess {
+  font-size: 14px;
+  color: #38a169;
+  font-weight: 600;
+  padding: 12px 16px;
+  background: #f0fff4;
+  border-radius: 8px;
+  border: 1px solid #c6f6d5;
+}
+
+.reviewLoginNote {
+  font-size: 14px;
+  color: var(--gray-400);
+}
+
+.reviewLoginNote a {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.reviewLoginNote a:hover {
+  text-decoration: underline;
+}
+
 .reviewItem {
   display: flex;
   gap: 16px;

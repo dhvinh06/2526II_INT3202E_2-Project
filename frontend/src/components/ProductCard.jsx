@@ -27,7 +27,9 @@ export default function ProductCard({ product }) {
           {originalPrice > price && <span className={styles.orig}>{fmt(originalPrice)}</span>}
         </div>
         <div className={styles.meta}>
-          <span className={styles.stars} title={`${rating}/5`}>{stars(rating)} <b>{rating}</b></span>
+          {rating != null && Number(rating) > 0 && (
+            <span className={styles.stars} title={`${rating}/5`}>{stars(rating)} <b>{Number(rating).toFixed(1)}</b></span>
+          )}
           {sold !== undefined && <span className={styles.sold}>Đã bán {Number(sold).toLocaleString()}</span>}
         </div>
       </div>
