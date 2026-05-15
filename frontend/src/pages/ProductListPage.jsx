@@ -1,10 +1,26 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useSearchParams, Link } from 'react-router-dom'
+import { useSearchParams, Link, useLocation } from 'react-router-dom'
 import { productAPI } from '../api'
 import ProductCard from '../components/ProductCard'
 import styles from './ProductListPage.module.css'
 
-// Đã xóa MOCK_PRODUCTS
+// 12 Mock Products
+const MOCK_PRODUCTS = [
+  { id: 1, name: 'Áo thun nam basic oversize Hàn Quốc', category: 'fashion', price: 149000, originalPrice: 220000, rating: 4.8, sold: 2104, image: 'https://picsum.photos/seed/pr1/400/400' },
+  { id: 2, name: 'Tai nghe Bluetooth ANC chống ồn', category: 'electronics', price: 890000, originalPrice: 1290000, rating: 4.7, sold: 687, image: 'https://picsum.photos/seed/pr2/400/400' },
+  { id: 3, name: 'Váy hoa maxi dáng dài nữ tính', category: 'fashion', price: 289000, originalPrice: 420000, rating: 4.7, sold: 856, image: 'https://picsum.photos/seed/pr3/400/400' },
+  { id: 4, name: 'Bình giữ nhiệt inox 316 500ml', category: 'home', price: 245000, originalPrice: 320000, rating: 4.9, sold: 3102, image: 'https://picsum.photos/seed/pr4/400/400' },
+  { id: 5, name: 'Giày sneaker nam nữ đế êm thoáng khí', category: 'fashion', price: 520000, originalPrice: 650000, rating: 4.6, sold: 1432, image: 'https://picsum.photos/seed/pr5/400/400' },
+  { id: 6, name: 'Đồng hồ thông minh đo sức khoẻ', category: 'electronics', price: 1250000, originalPrice: 1890000, rating: 4.5, sold: 312, image: 'https://picsum.photos/seed/pr6/400/400' },
+  { id: 7, name: 'Loa Bluetooth mini chống nước IPX7', category: 'electronics', price: 450000, originalPrice: 680000, rating: 4.8, sold: 920, image: 'https://picsum.photos/seed/pr7/400/400' },
+  { id: 8, name: 'Nồi chiên không dầu 5L digital', category: 'home', price: 1490000, originalPrice: 2200000, rating: 4.6, sold: 445, image: 'https://picsum.photos/seed/pr8/400/400' },
+  { id: 9, name: 'Bộ dưỡng da 5 bước cho da dầu', category: 'beauty', price: 450000, originalPrice: 650000, rating: 4.7, sold: 780, image: 'https://picsum.photos/seed/pr9/400/400' },
+  { id: 10, name: 'Son môi matte lì 24h siêu bền màu', category: 'beauty', price: 120000, originalPrice: 185000, rating: 4.8, sold: 5200, image: 'https://picsum.photos/seed/pr10/400/400' },
+  { id: 11, name: 'Sách Đắc Nhân Tâm bản mới 2024', category: 'books', price: 78000, originalPrice: 95000, rating: 4.9, sold: 8900, image: 'https://picsum.photos/seed/pr11/400/400' },
+  { id: 12, name: 'Balo laptop chống nước 15.6"', category: 'accessories', price: 380000, originalPrice: 450000, rating: 4.6, sold: 1023, image: 'https://picsum.photos/seed/pr12/400/400' },
+  { id: 13, name: 'Bàn phím cơ không dây RGB', category: 'electronics', price: 650000, originalPrice: 850000, rating: 4.8, sold: 412, image: 'https://picsum.photos/seed/pr13/400/400' },
+  { id: 14, name: 'Áo khoác dù chống nắng UV', category: 'fashion', price: 199000, originalPrice: 250000, rating: 4.5, sold: 1800, image: 'https://picsum.photos/seed/pr14/400/400' }
+]
 
 const CATEGORIES = [
   { id: 'all', name: 'Tất cả' },
@@ -25,12 +41,13 @@ const SORT_OPTIONS = [
 
 export default function ProductListPage() {
   const [searchParams, setSearchParams] = useSearchParams()
-  
+  const location = useLocation()
+
   // States
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  
+
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 12
@@ -53,45 +70,41 @@ export default function ProductListPage() {
       sortBy: searchParams.get('sort') || 'newest'
     }))
     setCurrentPage(1)
-  }, [searchParams])
+  }, [location.search])
 
-  // Fetch or mock
+  // Fetch from backend whenever URL changes
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true)
       try {
-        const data = await productAPI.getProducts({ 
-          search: filters.search || undefined,
-          categoryId: filters.category !== 'all' ? filters.category : undefined
+        const queryParams = new URLSearchParams(location.search)
+        const currentSearch = queryParams.get('search') || undefined
+        const currentCat = queryParams.get('category')
+        
+        const data = await productAPI.getProducts({
+          search: currentSearch,
+          categoryId: currentCat && currentCat !== 'all' ? currentCat : undefined
         })
+        
         if (data && data.length > 0) {
           setProducts(data)
         } else {
           setProducts([])
         }
       } catch (err) {
-        console.error("API error, falling back to mock data", err)
+        console.error("API error", err)
         setError('Không thể tải dữ liệu sản phẩm.')
-        setProducts([]) // Fallback to empty on error
+        setProducts([]) 
       } finally {
         setLoading(false)
       }
     }
     fetchProducts()
-  }, [])
+  }, [location.search])
 
   // Derived state (Filtering & Sorting)
   const filteredProducts = useMemo(() => {
     let result = [...products]
-
-    if (filters.search) {
-      const s = filters.search.toLowerCase()
-      result = result.filter(p => p.name.toLowerCase().includes(s))
-    }
-
-    if (filters.category && filters.category !== 'all') {
-      result = result.filter(p => p.category === filters.category)
-    }
 
     if (filters.minPrice) {
       result = result.filter(p => p.price >= Number(filters.minPrice))
@@ -126,7 +139,7 @@ export default function ProductListPage() {
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }))
     setCurrentPage(1)
-    
+
     // Update URL logic (optional based on your need, keeping it simple here)
     if (key === 'category' || key === 'sortBy') {
       const newParams = new URLSearchParams(searchParams)
@@ -151,7 +164,7 @@ export default function ProductListPage() {
 
   return (
     <div className={styles.page}>
-      
+
       {/* Breadcrumb */}
       <div className={styles.breadcrumb}>
         <div className={styles.innerBreadcrumb}>
@@ -171,8 +184,8 @@ export default function ProductListPage() {
 
       <div className={styles.container}>
         {/* Mobile Filter Overlay */}
-        <div 
-          className={`${styles.overlay} ${isMobileDrawerOpen ? styles.open : ''}`} 
+        <div
+          className={`${styles.overlay} ${isMobileDrawerOpen ? styles.open : ''}`}
           onClick={() => setIsMobileDrawerOpen(false)}
         />
 
@@ -189,9 +202,9 @@ export default function ProductListPage() {
             <div className={styles.radioList}>
               {CATEGORIES.map(cat => (
                 <label key={cat.id} className={styles.radioItem}>
-                  <input 
-                    type="radio" 
-                    name="category" 
+                  <input
+                    type="radio"
+                    name="category"
                     value={cat.id}
                     checked={filters.category === cat.id}
                     onChange={() => handleFilterChange('category', cat.id)}
@@ -216,7 +229,7 @@ export default function ProductListPage() {
 
           <div className={styles.filterSection}>
             <h4>Sắp xếp</h4>
-            <select 
+            <select
               className={styles.sortSelectMobile}
               value={filters.sortBy}
               onChange={(e) => handleFilterChange('sortBy', e.target.value)}
@@ -232,22 +245,22 @@ export default function ProductListPage() {
         <main className={styles.main}>
           <div className={styles.toolbar}>
             <div className={styles.info}>
-              Hiển thị <b>{Math.min((currentPage - 1) * itemsPerPage + 1, filteredProducts.length)}</b> - 
-              <b>{Math.min(currentPage * itemsPerPage, filteredProducts.length)}</b> trong tổng số 
+              Hiển thị <b>{Math.min((currentPage - 1) * itemsPerPage + 1, filteredProducts.length)}</b> -
+              <b>{Math.min(currentPage * itemsPerPage, filteredProducts.length)}</b> trong tổng số
               <b> {filteredProducts.length}</b> sản phẩm
               {filters.search && ` kết quả cho "${filters.search}"`}
             </div>
-            
+
             <div className={styles.toolbarRight}>
-              <button 
-                className={styles.mobileFilterToggle} 
+              <button
+                className={styles.mobileFilterToggle}
                 onClick={() => setIsMobileDrawerOpen(true)}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" /></svg>
                 Bộ lọc
               </button>
-              
-              <select 
+
+              <select
                 className={styles.sortSelect}
                 value={filters.sortBy}
                 onChange={(e) => handleFilterChange('sortBy', e.target.value)}
@@ -265,14 +278,14 @@ export default function ProductListPage() {
               {[...Array(8)].map((_, i) => (
                 <div key={i} className={styles.skeletonCard}>
                   <div className={styles.skeletonImg}></div>
-                  <div className={styles.skeletonText} style={{width: '80%'}}></div>
-                  <div className={styles.skeletonText} style={{width: '50%'}}></div>
+                  <div className={styles.skeletonText} style={{ width: '80%' }}></div>
+                  <div className={styles.skeletonText} style={{ width: '50%' }}></div>
                 </div>
               ))}
             </div>
           ) : filteredProducts.length === 0 ? (
             <div className={styles.emptyState}>
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--gray-400)" strokeWidth="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--gray-400)" strokeWidth="1.5"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
               <h3>Không tìm thấy sản phẩm phù hợp</h3>
               <p>Vui lòng thử lại với từ khóa hoặc bộ lọc khác.</p>
               <button onClick={resetFilters} className={styles.resetBtnLarge}>Xóa toàn bộ bộ lọc</button>
@@ -287,23 +300,23 @@ export default function ProductListPage() {
 
               {totalPages > 1 && (
                 <div className={styles.pagination}>
-                  <button 
-                    disabled={currentPage === 1} 
+                  <button
+                    disabled={currentPage === 1}
                     onClick={() => setCurrentPage(p => p - 1)}
                   >
                     ❮
                   </button>
                   {[...Array(totalPages)].map((_, i) => (
-                    <button 
-                      key={i + 1} 
+                    <button
+                      key={i + 1}
                       className={currentPage === i + 1 ? styles.activePage : ''}
                       onClick={() => setCurrentPage(i + 1)}
                     >
                       {i + 1}
                     </button>
                   ))}
-                  <button 
-                    disabled={currentPage === totalPages} 
+                  <button
+                    disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage(p => p + 1)}
                   >
                     ❯

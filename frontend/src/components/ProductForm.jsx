@@ -9,7 +9,7 @@ export default function ProductForm() {
     const [preview, setPreview] = useState('')
     const [uploading, setUploading] = useState(false)
     const [form, setForm] = useState({
-        name: '', price: '', description: '', categoryId: ''
+        name: '', price: '', description: '', categoryId: '', stock: ''
     })
     const [categories, setCategories] = useState([])
     const [brands, setBrands] = useState([])
@@ -48,6 +48,7 @@ export default function ProductForm() {
         const finalBrand = selectedBrand === '__others__' ? customBrand : selectedBrand
         await productAPI.createProduct({
             ...form, price: parseInt(form.price),
+            stock: form.stock ? parseInt(form.stock) : 0,
             categoryId: parseInt(form.categoryId),
             brandName: finalBrand,
             image: imageUrl
@@ -64,8 +65,12 @@ export default function ProductForm() {
 
             <input placeholder="Tên sản phẩm"
                    value={form.name} onChange={e => setForm({...form, name: e.target.value})}/>
-            <input type="number" placeholder="Giá (VNĐ)"
-                   value={form.price} onChange={e => setForm({...form, price: e.target.value})}/>
+            <div style={{ display: 'flex', gap: 10 }}>
+                <input type="number" placeholder="Giá (VNĐ)" style={{ flex: 1 }}
+                       value={form.price} onChange={e => setForm({...form, price: e.target.value})}/>
+                <input type="number" placeholder="Số lượng" style={{ flex: 1 }}
+                       value={form.stock} onChange={e => setForm({...form, stock: e.target.value})}/>
+            </div>
 
             <textarea placeholder="Mô tả sản phẩm"
                       value={form.description} onChange={e => setForm({...form, description: e.target.value})}/>

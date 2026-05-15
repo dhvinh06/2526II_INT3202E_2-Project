@@ -32,9 +32,9 @@ public class CustomerController {
     }
 
     @GetMapping("/products")
-    public List<Map<String, Object>> products(@RequestParam(required = false) Integer categoryId, @RequestParam(required = false) Integer brandId,
-                                              @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
-        return productService.browse(categoryId, brandId, page, size);
+    public List<Map<String, Object>> products(@RequestParam(required = false) Integer categoryId, @RequestParam(required = false) Integer brandId, @RequestParam(required = false) String search,
+                                              @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "100") int size) {
+        return productService.browse(categoryId, brandId, search, page, size);
     }
 
     @GetMapping("/products/{id}")

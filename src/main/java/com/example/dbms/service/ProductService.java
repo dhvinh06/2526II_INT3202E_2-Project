@@ -39,8 +39,8 @@ public class ProductService {
         this.brandRepository = brandRepository;
     }
 
-    public List<Map<String, Object>> browse(Integer categoryId, Integer brandId, int page, int size) {
-        return productRepository.search(categoryId, brandId, PageRequest.of(page, size))
+    public List<Map<String, Object>> browse(Integer categoryId, Integer brandId, String search, int page, int size) {
+        return productRepository.search(categoryId, brandId, search, PageRequest.of(page, size))
                 .map(CommonMapper::product).toList();
     }
 
@@ -73,8 +73,12 @@ public class ProductService {
         }
         if (id == null) {
             p.setSold(0);
-            p.setStock(0);
+            p.setStock(req.getStock() != null ? req.getStock() : 0);
             p.setStatus(Product.Status.PENDING);
+        } else {
+            if (req.getStock() != null) {
+                p.setStock(req.getStock());
+            }
         }
         return productRepository.save(p);
     }
