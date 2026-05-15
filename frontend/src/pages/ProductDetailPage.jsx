@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
-import { productAPI } from '../api'
+import { productAPI, reviewAPI } from '../api'
+import { useAuth } from '../context/AuthContext'
 import styles from './ProductDetailPage.module.css'
 
 // MOCK DATA
@@ -54,6 +55,7 @@ const stars = (r) => {
 export default function ProductDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -63,23 +65,31 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1)
   const [activeTab, setActiveTab] = useState('description')
 
+  // State cho reviews thực từ API
+  const [reviews, setReviews] = useState([])
+  const [reviewsLoading, setReviewsLoading] = useState(false)
+
+  // State cho form gửi đánh giá
+  const [submitRating, setSubmitRating] = useState(0)
+  const [hoverRating, setHoverRating] = useState(0)
+  const [submitComment, setSubmitComment] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState(null)
+  const [submitSuccess, setSubmitSuccess] = useState(false)
+
   useEffect(() => {
-    // Scroll to top on load
     window.scrollTo(0, 0)
     const fetchProduct = async () => {
       setLoading(true)
       try {
         const data = await productAPI.getProductById(id)
         if (data && data.id) {
-          // Merge with mock to ensure UI doesn't break if API lacks images/reviews or returns them as null
-          setProduct({ 
-            ...MOCK_PRODUCT, 
-            ...data, 
+          setProduct({
+            ...MOCK_PRODUCT,
+            ...data,
             id: Number(id),
             images: Array.isArray(data.images) ? data.images : MOCK_PRODUCT.images,
             specs: Array.isArray(data.specs) ? data.specs : MOCK_PRODUCT.specs,
-            reviews: Array.isArray(data.reviews) ? data.reviews : MOCK_PRODUCT.reviews,
-            description: 'sản phẩm chất lượng'
           })
         } else {
           setProduct({ ...MOCK_PRODUCT, id: Number(id) })
@@ -88,7 +98,7 @@ export default function ProductDetailPage() {
         setQuantity(1)
         setActiveTab('description')
       } catch (err) {
-        console.warn("API Error, falling back to mock data", err)
+        console.warn('API Error, falling back to mock data', err)
         setProduct({ ...MOCK_PRODUCT, id: Number(id) })
         setSelectedImage(0)
         setQuantity(1)
@@ -98,6 +108,24 @@ export default function ProductDetailPage() {
       }
     }
     fetchProduct()
+  }, [id])
+
+  // Fetch reviews thực từ API
+  useEffect(() => {
+    if (!id) return
+    const fetchReviews = async () => {
+      setReviewsLoading(true)
+      try {
+        const data = await reviewAPI.getByProduct(id)
+        setReviews(Array.isArray(data) ? data : [])
+      } catch (err) {
+        console.warn('Không thể tải đánh giá:', err)
+        setReviews([])
+      } finally {
+        setReviewsLoading(false)
+      }
+    }
+    fetchReviews()
   }, [id])
 
   const handleQtyChange = (delta) => {
@@ -122,6 +150,38 @@ export default function ProductDetailPage() {
 
   const handleBuyNow = () => {
     navigate('/checkout')
+  }
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault()
+    if (!user) {
+      setSubmitError('Bạn cần đăng nhập để gửi đánh giá.')
+      return
+    }
+    if (submitRating === 0) {
+      setSubmitError('Vui lòng chọn số sao.')
+      return
+    }
+    setSubmitting(true)
+    setSubmitError(null)
+    try {
+      await reviewAPI.create({
+        productId: Number(id),
+        userId: user.id,
+        rating: submitRating,
+        comment: submitComment.trim()
+      })
+      setSubmitSuccess(true)
+      setSubmitRating(0)
+      setSubmitComment('')
+      // Tải lại danh sách reviews
+      const data = await reviewAPI.getByProduct(id)
+      setReviews(Array.isArray(data) ? data : [])
+    } catch (err) {
+      setSubmitError(err.message || 'Gửi đánh giá thất bại. Vui lòng thử lại.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   if (loading) {
@@ -181,13 +241,22 @@ export default function ProductDetailPage() {
             <h1 className={styles.title}>{product.name}</h1>
             
             <div className={styles.ratingRow}>
-              <div className={styles.starsGroup}>
-                <span className={styles.starsText} title={`${product.rating}/5`}>{stars(product.rating)}</span>
-                <span className={styles.ratingNumber}>{product.rating}</span>
-              </div>
-              <span className={styles.divider}>|</span>
-              <span className={styles.reviewCount}>{product.reviewCount} đánh giá</span>
-              <span className={styles.divider}>|</span>
+              {reviews.length > 0 ? (
+                <>
+                  <div className={styles.starsGroup}>
+                    <span className={styles.starsText}>{stars(product.rating)}</span>
+                    <span className={styles.ratingNumber}>{Number(product.rating).toFixed(1)}</span>
+                  </div>
+                  <span className={styles.divider}>|</span>
+                  <span className={styles.reviewCount}>{reviews.length} đánh giá</span>
+                  <span className={styles.divider}>|</span>
+                </>
+              ) : (
+                <>
+                  <span className={styles.reviewCount} style={{ color: 'var(--gray-400)' }}>Chưa có đánh giá</span>
+                  <span className={styles.divider}>|</span>
+                </>
+              )}
               <span className={styles.soldCount}>{product.sold} đã bán</span>
             </div>
 
@@ -259,11 +328,11 @@ export default function ProductDetailPage() {
             >
               Thông số kỹ thuật
             </button>
-            <button 
+          <button 
               className={`${styles.tabBtn} ${activeTab === 'reviews' ? styles.activeTab : ''}`}
               onClick={() => setActiveTab('reviews')}
             >
-              Đánh giá ({product.reviewCount})
+              Đánh giá ({reviews.length})
             </button>
           </div>
 
@@ -287,17 +356,78 @@ export default function ProductDetailPage() {
 
             {activeTab === 'reviews' && (
               <div className={styles.reviewsTab}>
-                {product.reviews.map(r => (
-                  <div key={r.id} className={styles.reviewItem}>
-                    <div className={styles.reviewAvatar}>{r.avatar}</div>
-                    <div className={styles.reviewBody}>
-                      <div className={styles.reviewUser}>{r.name}</div>
-                      <div className={styles.reviewStars}>{stars(r.rating)}</div>
-                      <div className={styles.reviewDate}>{r.date}</div>
-                      <div className={styles.reviewComment}>{r.comment}</div>
+
+                {/* DANH SÁCH REVIEWS */}
+                {reviewsLoading ? (
+                  <p style={{ color: 'var(--gray-400)', textAlign: 'center', padding: '20px 0' }}>Đang tải đánh giá...</p>
+                ) : reviews.length === 0 ? (
+                  <p style={{ color: 'var(--gray-400)', textAlign: 'center', padding: '20px 0' }}>Chưa có đánh giá nào. Hãy là người đầu tiên!</p>
+                ) : (
+                  reviews.map(r => (
+                    <div key={r.id} className={styles.reviewItem}>
+                      <div className={styles.reviewAvatar}>{(r.userName || 'U')[0].toUpperCase()}</div>
+                      <div className={styles.reviewBody}>
+                        <div className={styles.reviewUser}>{r.userName || 'Người dùng ẩn danh'}</div>
+                        <div className={styles.reviewStars}>{stars(r.rating)}</div>
+                        <div className={styles.reviewDate}>
+                          {r.createdAt ? new Date(r.createdAt).toLocaleDateString('vi-VN') : ''}
+                        </div>
+                        <div className={styles.reviewComment}>{r.comment}</div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
+
+                {/* FORM GỬI ĐÁNH GIÁ */}
+                <div className={styles.reviewFormWrap}>
+                  <h3 className={styles.reviewFormTitle}>Viết đánh giá của bạn</h3>
+                  {!user ? (
+                    <p className={styles.reviewLoginNote}>
+                      Bạn cần <Link to="/login">đăng nhập</Link> để gửi đánh giá.
+                    </p>
+                  ) : submitSuccess ? (
+                    <p className={styles.reviewSuccess}>✅ Cảm ơn bạn đã đánh giá!</p>
+                  ) : (
+                    <form onSubmit={handleSubmitReview} className={styles.reviewForm}>
+                      {/* CHỌN SAO */}
+                      <div className={styles.starPicker}>
+                        {[1,2,3,4,5].map(star => (
+                          <span
+                            key={star}
+                            className={styles.starPickerStar}
+                            style={{ color: star <= (hoverRating || submitRating) ? '#faad14' : 'var(--gray-200)', cursor: 'pointer', fontSize: '28px' }}
+                            onMouseEnter={() => setHoverRating(star)}
+                            onMouseLeave={() => setHoverRating(0)}
+                            onClick={() => setSubmitRating(star)}
+                          >
+                            ★
+                          </span>
+                        ))}
+                        {submitRating > 0 && (
+                          <span style={{ marginLeft: '8px', fontSize: '14px', color: 'var(--gray-400)' }}>
+                            {['', 'Rất tệ', 'Tệ', 'Bình thường', 'Tốt', 'Rất tốt'][submitRating]}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* NHẬP COMMENT */}
+                      <textarea
+                        className={styles.reviewTextarea}
+                        placeholder="Chia sẻ cảm nhận của bạn về sản phẩm..."
+                        value={submitComment}
+                        onChange={e => setSubmitComment(e.target.value)}
+                        rows={4}
+                      />
+
+                      {submitError && <p className={styles.reviewError}>{submitError}</p>}
+
+                      <button type="submit" className={styles.btnPrimary} disabled={submitting} style={{ alignSelf: 'flex-start', padding: '10px 28px' }}>
+                        {submitting ? 'Đang gửi...' : 'Gửi đánh giá'}
+                      </button>
+                    </form>
+                  )}
+                </div>
+
               </div>
             )}
           </div>

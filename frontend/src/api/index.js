@@ -128,3 +128,19 @@ export const orderAPI = {
     } catch (err) { handleError(err) }
   }
 }
+
+export const reviewAPI = {
+  getByProduct: async (productId) => {
+    try {
+      const res = await axios.get(`/reviews/product/${productId}`)
+      return res.data
+    } catch (err) { handleError(err) }
+  },
+
+  create: async (data) => {
+    try {
+      const res = await axios.post('/reviews', data)
+      return res.data
+    } catch (err) { handleError(err) }
+  }
+}
