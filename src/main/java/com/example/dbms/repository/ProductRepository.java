@@ -13,8 +13,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ProductRepository extends JpaRepository<Product, Integer> {
-    @Query("select p from Product p where (:categoryId is null or p.category.id = :categoryId) and (:brandId is null or p.brand.id = :brandId) and p.status = 'APPROVED'")
-    Page<Product> search(@Param("categoryId") Integer categoryId, @Param("brandId") Integer brandId, Pageable pageable);
+    @Query("select p from Product p where (:categoryId is null or p.category.id = :categoryId) " +
+           "and (:brandId is null or p.brand.id = :brandId) " +
+           "and (:search is null or lower(p.name) like lower(concat('%', :search, '%'))) " +
+           "and p.status = 'APPROVED' and p.stock > 0 order by p.id desc")
+    Page<Product> search(@Param("categoryId") Integer categoryId, @Param("brandId") Integer brandId, @Param("search") String search, Pageable pageable);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select p from Product p where p.id = :id")
