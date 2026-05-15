@@ -39,6 +39,7 @@ public class ShippingAddressService {
         address.setPhone(req.getPhone());
         address.setAddress(req.getAddress());
         address.setIsDefault(Boolean.TRUE.equals(req.getIsDefault()));
+        address.setCreatedAt(java.time.Instant.now());
         return toMap(shippingAddressRepository.save(address));
     }
 

@@ -56,7 +56,7 @@ export default function Header() {
 
         {/* Right actions */}
         <div className={styles.actions}>
-          <Link to="/checkout" className={styles.cartBtn} aria-label="Giỏ hàng">
+          <Link to="/cart" className={styles.cartBtn} aria-label="Giỏ hàng">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
               <line x1="3" y1="6" x2="21" y2="6"/>
@@ -99,7 +99,7 @@ export default function Header() {
             <button type="submit">Tìm</button>
           </form>
           <Link to="/products" onClick={() => setMenuOpen(false)}>Sản phẩm</Link>
-          <Link to="/checkout" onClick={() => setMenuOpen(false)}>Giỏ hàng</Link>
+          <Link to="/cart" onClick={() => setMenuOpen(false)}>Giỏ hàng</Link>
           {user
             ? <button onClick={() => { handleLogout(); setMenuOpen(false) }}>Đăng xuất</button>
             : <Link to="/login" onClick={() => setMenuOpen(false)}>Đăng nhập</Link>

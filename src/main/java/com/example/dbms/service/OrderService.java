@@ -66,6 +66,7 @@ public class OrderService {
         order.setUser(user);
         order.setStatus("PENDING");
         order.setTotalAmount(total);
+        order.setCreatedAt(java.time.Instant.now());
         order = orderRepository.save(order);
 
         List<OrderItem> savedItems = new ArrayList<>();
@@ -93,6 +94,7 @@ public class OrderService {
                 "productId", i.getProductId(),
                 "name", i.getName(),
                 "price", i.getPrice(),
+                "image", i.getImage(),
                 "quantity", i.getQuantity())).toList());
         return result;
     }
@@ -102,13 +104,19 @@ public class OrderService {
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, HttpStatus.NOT_FOUND, "Order not found"));
         Map<String, Object> data = CommonMapper.order(order);
         data.put("items", orderItemRepository.findByOrderId(orderId).stream().map(i -> Map.of(
-                "id", i.getId(), "productId", i.getProductId(), "name", i.getName(), "price", i.getPrice(), "quantity", i.getQuantity()
+                "id", i.getId(), "productId", i.getProductId(), "name", i.getName(), "price", i.getPrice(), "image", i.getImage(), "quantity", i.getQuantity()
         )).toList());
         return data;
     }
 
     public List<Map<String, Object>> byUser(Integer userId) {
-        return orderRepository.findByUserId(userId).stream().map(CommonMapper::order).toList();
+        return orderRepository.findByUserId(userId).stream().map(o -> {
+            Map<String, Object> data = CommonMapper.order(o);
+            data.put("items", orderItemRepository.findByOrderId(o.getId()).stream().map(i -> Map.of(
+                    "id", i.getId(), "productId", i.getProductId(), "name", i.getName(), "price", i.getPrice(), "image", i.getImage(), "quantity", i.getQuantity()
+            )).toList());
+            return data;
+        }).toList();
     }
 
     public List<Map<String, Object>> all(String status) {

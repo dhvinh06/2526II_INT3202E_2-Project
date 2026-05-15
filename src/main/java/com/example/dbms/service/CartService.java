@@ -45,6 +45,9 @@ public class CartService {
         item.setName(product.getName());
         item.setPrice(product.getPrice());
         item.setImage(product.getImage());
+        if (item.getId() == null) {
+            item.setCreatedAt(java.time.Instant.now());
+        }
         return toMap(cartItemRepository.save(item));
     }
 

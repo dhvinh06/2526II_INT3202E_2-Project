@@ -1,49 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
-import { productAPI, reviewAPI } from '../api'
+import { productAPI, reviewAPI, cartAPI } from '../api'
 import { useAuth } from '../context/AuthContext'
 import styles from './ProductDetailPage.module.css'
 
-// MOCK DATA
-const MOCK_PRODUCT = {
-  id: 1,
-  name: 'Áo thun nam basic oversize Hàn Quốc vải cotton 100% thoáng mát, thấm hút mồ hôi tốt',
-  category: 'fashion',
-  price: 149000,
-  originalPrice: 220000,
-  rating: 4.8,
-  reviewCount: 328,
-  sold: 2104,
-  stock: 156,
-  images: [
-    'https://picsum.photos/seed/p1_1/600/600',
-    'https://picsum.photos/seed/p1_2/600/600',
-    'https://picsum.photos/seed/p1_3/600/600',
-    'https://picsum.photos/seed/p1_4/600/600',
-  ],
-  description: 'sản phẩm chất lượng',
-  specs: [
-    { label: 'Thương hiệu', value: 'OEM' },
-    { label: 'Xuất xứ', value: 'Việt Nam' },
-    { label: 'Chất liệu', value: 'Cotton' },
-    { label: 'Kiểu dáng', value: 'Oversize' },
-  ],
-  reviews: [
-    { id: 1, name: 'Nguyễn Văn A', avatar: 'A', rating: 5, date: '12/05/2026', comment: 'Áo đẹp, vải mát, form chuẩn hình. Rất đáng tiền!' },
-    { id: 2, name: 'Trần Thị B', avatar: 'B', rating: 4, date: '10/05/2026', comment: 'Giao hàng nhanh, đóng gói cẩn thận. Màu hơi nhạt hơn trên hình một chút xíu.' },
-    { id: 3, name: 'Lê Hoàng C', avatar: 'C', rating: 5, date: '05/05/2026', comment: 'Chất lượng quá ổn so với mức giá. Sẽ ủng hộ shop thêm.' },
-    { id: 4, name: 'Phạm D', avatar: 'D', rating: 5, date: '01/05/2026', comment: 'Mua lần 2 rồi, áo giặt máy thoải mái không bị nhão form.' },
-    { id: 5, name: 'Hoàng E', avatar: 'E', rating: 4, date: '28/04/2026', comment: 'Khá ok.' },
-  ]
-}
-
-const SIMILAR_PRODUCTS = [
-  { id: 2, name: 'Quần short nam kaki túi hộp', category: 'fashion', price: 189000, originalPrice: 250000, rating: 4.6, sold: 1250, image: 'https://picsum.photos/seed/s1/400/400' },
-  { id: 3, name: 'Áo polo nam trơn vải cá sấu', category: 'fashion', price: 159000, originalPrice: 199000, rating: 4.7, sold: 3400, image: 'https://picsum.photos/seed/s2/400/400' },
-  { id: 4, name: 'Giày sneaker nam đế bằng viền màu', category: 'fashion', price: 320000, originalPrice: 450000, rating: 4.5, sold: 890, image: 'https://picsum.photos/seed/s3/400/400' },
-  { id: 5, name: 'Mũ lưỡi trai trơn phong cách bụi', category: 'fashion', price: 450000, originalPrice: 65000, rating: 4.8, sold: 5600, image: 'https://picsum.photos/seed/s4/400/400' },
-]
+// Đã xóa MOCK_PRODUCT và SIMILAR_PRODUCTS
 
 const fmt = (n) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n)
 const discount = (sale, orig) => orig > sale ? Math.round((1 - sale / orig) * 100) : 0
@@ -85,21 +47,22 @@ export default function ProductDetailPage() {
         const data = await productAPI.getProductById(id)
         if (data && data.id) {
           setProduct({
-            ...MOCK_PRODUCT,
             ...data,
             id: Number(id),
-            images: Array.isArray(data.images) ? data.images : MOCK_PRODUCT.images,
-            specs: Array.isArray(data.specs) ? data.specs : MOCK_PRODUCT.specs,
+            images: data.images ? (Array.isArray(data.images) ? data.images : [data.images]) : ['https://via.placeholder.com/600?text=No+Image'],
+            specs: data.specs || [],
           })
         } else {
-          setProduct({ ...MOCK_PRODUCT, id: Number(id) })
+          setError('Không tìm thấy sản phẩm')
+          setProduct(null)
         }
         setSelectedImage(0)
         setQuantity(1)
         setActiveTab('description')
       } catch (err) {
-        console.warn('API Error, falling back to mock data', err)
-        setProduct({ ...MOCK_PRODUCT, id: Number(id) })
+        console.warn('API Error:', err)
+        setError('Lỗi kết nối máy chủ')
+        setProduct(null)
         setSelectedImage(0)
         setQuantity(1)
         setActiveTab('description')
@@ -144,8 +107,22 @@ export default function ProductDetailPage() {
     else setQuantity(val)
   }
 
-  const handleAddToCart = () => {
-    alert(`Đã thêm ${quantity} sản phẩm vào giỏ hàng!`)
+  const handleAddToCart = async () => {
+    if (!user) {
+      alert('Vui lòng đăng nhập để thêm vào giỏ hàng.')
+      navigate('/login')
+      return
+    }
+    try {
+      await cartAPI.addToCart({
+        userId: user.id,
+        productId: product.id,
+        quantity: quantity
+      })
+      alert(`Đã thêm ${quantity} sản phẩm vào giỏ hàng!`)
+    } catch (err) {
+      alert(err.message || 'Lỗi khi thêm vào giỏ hàng.')
+    }
   }
 
   const handleBuyNow = () => {
@@ -430,16 +407,6 @@ export default function ProductDetailPage() {
 
               </div>
             )}
-          </div>
-        </section>
-
-        {/* SẢN PHẨM TƯƠNG TỰ */}
-        <section className={styles.similarSection}>
-          <h2 className={styles.similarTitle}>Sản phẩm tương tự</h2>
-          <div className={styles.similarGrid}>
-            {SIMILAR_PRODUCTS.map(p => (
-              <ProductCard key={p.id} product={p} />
-            ))}
           </div>
         </section>
 

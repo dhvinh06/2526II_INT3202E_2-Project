@@ -1,43 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Navigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { userAPI } from '../api'
+import { userAPI, orderAPI } from '../api'
 import styles from './ProfilePage.module.css'
 
 const EyeIcon = ({ show }) => show
   ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
   : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
 
-// MOCK DATA ORDERS
-const MOCK_ORDERS = [
-  {
-    id: 'ORD-982341',
-    date: '10/05/2026',
-    status: 'DELIVERED',
-    total: 394000,
-    items: [
-      { id: 1, name: 'Áo thun nam basic oversize Hàn Quốc', quantity: 2, image: 'https://picsum.photos/seed/pr1/80/80' }
-    ]
-  },
-  {
-    id: 'ORD-554123',
-    date: '11/05/2026',
-    status: 'CONFIRMED',
-    total: 890000,
-    items: [
-      { id: 2, name: 'Tai nghe Bluetooth ANC chống ồn', quantity: 1, image: 'https://picsum.photos/seed/pr2/80/80' }
-    ]
-  },
-  {
-    id: 'ORD-109283',
-    date: '12/05/2026',
-    status: 'PENDING',
-    total: 520000,
-    items: [
-      { id: 5, name: 'Giày sneaker nam nữ đế êm thoáng khí', quantity: 1, image: 'https://picsum.photos/seed/pr5/80/80' }
-    ]
-  }
-]
+// Đã xóa MOCK_ORDERS
 
 const STATUS_MAP = {
   PENDING: { label: 'Chờ xác nhận', color: 'status-warning' },
@@ -58,6 +29,8 @@ export default function ProfilePage() {
   }
 
   const [activeTab, setActiveTab] = useState('info') // 'info' | 'password' | 'orders'
+  const [orders, setOrders] = useState([])
+  const [ordersLoading, setOrdersLoading] = useState(false)
 
   // --- STATE: INFO TAB ---
   const [profileForm, setProfileForm] = useState({ name: user.name || '', email: user.email || '' })
@@ -92,6 +65,24 @@ export default function ProfilePage() {
     fetchUser()
     // eslint-disable-next-line
   }, [user.id])
+
+  // FETCH ORDERS
+  useEffect(() => {
+    if (activeTab === 'orders' && user) {
+      const fetchOrders = async () => {
+        setOrdersLoading(true)
+        try {
+          const res = await orderAPI.getOrdersByUser(user.id)
+          setOrders(Array.isArray(res) ? res.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) : [])
+        } catch (err) {
+          console.error(err)
+        } finally {
+          setOrdersLoading(false)
+        }
+      }
+      fetchOrders()
+    }
+  }, [activeTab, user])
 
   // --- HANDLERS: INFO TAB ---
   const handleInfoSubmit = async (e) => {
@@ -281,15 +272,19 @@ export default function ProfilePage() {
       <h2 className={styles.tabTitle}>Đơn hàng của tôi</h2>
       
       <div className={styles.orderList}>
-        {MOCK_ORDERS.map(order => (
+        {ordersLoading ? (
+          <p>Đang tải đơn hàng...</p>
+        ) : orders.length === 0 ? (
+          <p>Bạn chưa có đơn hàng nào.</p>
+        ) : orders.map(order => (
           <div key={order.id} className={styles.orderCard}>
             <div className={styles.orderHeader}>
               <div className={styles.orderMeta}>
                 <span className={styles.orderCode}>{order.id}</span>
-                <span className={styles.orderDate}>{order.date}</span>
+                <span className={styles.orderDate}>{order.createdAt ? new Date(order.createdAt).toLocaleDateString('vi-VN') : ''}</span>
               </div>
-              <div className={`${styles.orderStatus} ${styles[STATUS_MAP[order.status].color]}`}>
-                {STATUS_MAP[order.status].label}
+              <div className={`${styles.orderStatus} ${styles[STATUS_MAP[order.status]?.color || 'status-info']}`}>
+                {STATUS_MAP[order.status]?.label || order.status}
               </div>
             </div>
 
@@ -307,7 +302,7 @@ export default function ProfilePage() {
 
             <div className={styles.orderFooter}>
               <div className={styles.orderTotal}>
-                Tổng tiền: <span>{fmt(order.total)}</span>
+                Tổng tiền: <span>{fmt(order.totalAmount || 0)}</span>
               </div>
               <button className={styles.btnOutline} disabled>Xem chi tiết</button>
             </div>
