@@ -4,7 +4,6 @@ import ProductCard from '../components/ProductCard'
 import { productAPI, categoryAPI } from '../api/index'
 import styles from './HomePage.module.css'
 
-// Fallback mock data — chỉ dùng khi API chưa có dữ liệu (demo/dev)
 const MOCK_PRODUCTS = [
   { id: 1, name: 'Áo thun nam basic oversize Hàn Quốc', category: 'Thời trang', price: 149000, originalPrice: 220000, sold: 2104, image: 'https://picsum.photos/seed/pr1/400/400' },
   { id: 2, name: 'Tai nghe Bluetooth ANC chống ồn', category: 'Điện tử', price: 890000, originalPrice: 1290000, sold: 687, image: 'https://picsum.photos/seed/pr2/400/400' },
@@ -33,18 +32,15 @@ export default function HomePage() {
     const fetchProducts = async () => {
       try {
         const data = await productAPI.getProducts()
-        // Nếu API trả về rỗng hoặc lỗi silent → fallback mock
         setProducts(data?.length > 0 ? data : MOCK_PRODUCTS)
       } catch (err) {
         setError(err.message)
-        setProducts(MOCK_PRODUCTS) // fallback để trang không trắng khi demo
+        setProducts(MOCK_PRODUCTS)
       } finally {
         setIsLoading(false)
       }
     }
-
     fetchProducts()
-
   }, [])
 
   useEffect(() => {
@@ -75,105 +71,106 @@ export default function HomePage() {
   const bestSellers = [...products].sort((a, b) => (b.sold ?? 0) - (a.sold ?? 0)).slice(0, 8)
 
   return (
-      <div className={styles.page}>
+    <div className={styles.page}>
 
-        {/* 1. HERO BANNER */}
-        <section className={styles.hero}>
-          <div className={styles.heroContent}>
-            <div className={styles.heroBadge}>🔥 Khuyến mãi siêu khủng</div>
-            <h1 className={styles.heroTitle}>
-              Mua sắm thả ga<br />
-              <span>giá cả phải chăng</span>
-            </h1>
-            <p className={styles.heroDesc}>
-              Hàng ngàn sản phẩm chất lượng, giao hàng nhanh toàn quốc, hoàn tiền 100% nếu không hài lòng.
-            </p>
-            <button className={styles.heroBtn} onClick={() => navigate('/products')}>
-              Khám phá ngay
-            </button>
+      {/* 1. HERO — full-bleed light tile */}
+      <section className={styles.tileLight}>
+        <div className={styles.tileInner}>
+          <h1 className={`t-hero-display ${styles.heroTitle}`}>
+            Mua sắm thả ga.<br />
+            <span className={styles.heroAccent}>Giá cả phải chăng.</span>
+          </h1>
+          <p className={`t-lead ${styles.heroLead}`}>
+            Hàng ngàn sản phẩm chất lượng, giao hàng nhanh toàn quốc.
+          </p>
+          <div className={styles.ctaRow}>
+            <button className="btn-primary" onClick={() => navigate('/products')}>Khám phá ngay</button>
+            <button className="btn-secondary-pill" onClick={() => navigate('/products?sort=bestseller')}>Xem bán chạy</button>
           </div>
-          <div className={styles.heroImage}>
-            <img src="https://picsum.photos/seed/hero/600/400" alt="Hero Banner" />
+          <div className={styles.heroImageWrap}>
+            <img
+              className={`${styles.heroImage} product-shadow`}
+              src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=720&q=80"
+              alt="Hero – Giày sneaker"
+            />
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* 2. DANH MỤC NỔI BẬT */}
-        <section className={styles.container}>
-          <h2 className={styles.sectionTitle}>Danh mục nổi bật</h2>
-
+      {/* 2. CATEGORIES — parchment */}
+      <section className={styles.tileParchment}>
+        <div className={styles.containerWide}>
+          <h2 className={`t-display-lg ${styles.sectionTitle}`}>Danh mục nổi bật.</h2>
           <div className={styles.categoryRow}>
             {parentCategories.map(cat => (
-                <div
-                    key={cat.id}
-                    className={`${styles.categoryItem} ${selectedParentId === cat.id ? styles.categoryItemActive : ''}`}
-                    onClick={() => handleParentClick(cat.id)}
-                >
-                  <div className={styles.catIcon}>{cat.icon ?? '🏷️'}</div>
-                  <div className={styles.catName}>{cat.name}</div>
-                </div>
+              <button
+                key={cat.id}
+                type="button"
+                className={`${styles.categoryCard} ${selectedParentId === cat.id ? styles.categoryCardSelected : ''}`}
+                onClick={() => handleParentClick(cat.id)}
+              >
+                <div className={styles.catIcon}>{cat.icon ?? cat.name?.charAt(0)}</div>
+                <div className={`t-caption-strong ${styles.catName}`}>{cat.name}</div>
+              </button>
             ))}
           </div>
-
           {selectedParentId && childrenMap[selectedParentId] && (
-              <div className={styles.childList}>
-                {childrenMap[selectedParentId].map(child => (
-                    <div
-                        key={child.id}
-                        className={styles.childItem}
-                        onClick={() => navigate(`/products?categoryId=${child.id}`)}
-                    >
-                      {child.name}
-                    </div>
-                ))}
-              </div>
+            <div className={styles.childList}>
+              {childrenMap[selectedParentId].map(child => (
+                <button key={child.id} type="button" className={`${styles.childChip} t-caption`}
+                  onClick={() => navigate(`/products?categoryId=${child.id}`)}>
+                  {child.name}
+                </button>
+              ))}
+            </div>
           )}
-        </section>
+        </div>
+      </section>
 
-        {/* 3. SẢN PHẨM ĐỀ XUẤT */}
-        <section className={styles.container}>
+      {/* 3. RECOMMENDED — light */}
+      <section className={styles.tileLight}>
+        <div className={styles.containerWide}>
           <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Sản phẩm đề xuất</h2>
-            <Link to="/products" className={styles.seeAll}>Xem tất cả</Link>
+            <h2 className="t-display-lg">Sản phẩm đề xuất.</h2>
+            <Link to="/products" className="text-link">Xem tất cả ›</Link>
           </div>
-
-          {isLoading && <p>Đang tải sản phẩm...</p>}
-          {!isLoading && error && <p style={{ color: 'red' }}>Lỗi: {error}</p>}
+          {isLoading && <p className="t-body">Đang tải sản phẩm...</p>}
+          {!isLoading && error && <p className="t-body" style={{ color: 'var(--c-ink-muted-48)' }}>Lỗi: {error}</p>}
           {!isLoading && (
-              <div className={styles.grid}>
-                {recommendedProducts.map(p => (
-                    <ProductCard key={p.id} product={p} />
-                ))}
-              </div>
+            <div className={styles.grid}>
+              {recommendedProducts.map(p => <ProductCard key={p.id} product={p} />)}
+            </div>
           )}
-        </section>
+        </div>
+      </section>
 
-        {/* 4. MID BANNER */}
-        <section className={styles.midBanner}>
-          <div className={styles.midBannerContent}>
-            <h2>Giảm giá đến 50% cho thành viên mới</h2>
-            <p>Đăng ký tài khoản ngay hôm nay để nhận vô vàn ưu đãi hấp dẫn từ ShopVN.</p>
-            <button className={styles.midBannerBtn} onClick={() => navigate('/login')}>
-              Đăng ký ngay
-            </button>
+      {/* 4. MID — dark tile */}
+      <section className={styles.tileDark}>
+        <div className={styles.tileInner}>
+          <h2 className={`t-display-lg ${styles.darkTitle}`}>Giảm đến 50% cho thành viên mới.</h2>
+          <p className={`t-lead ${styles.darkLead}`}>Đăng ký tài khoản ngay hôm nay để nhận ưu đãi.</p>
+          <div className={styles.ctaRow}>
+            <button className="btn-primary" onClick={() => navigate('/login')}>Đăng ký ngay</button>
+            <Link to="/products" className="text-link text-link-on-dark">Xem sản phẩm ›</Link>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* 5. SẢN PHẨM BÁN CHẠY */}
-        <section className={styles.container}>
+      {/* 5. BESTSELLERS — light */}
+      <section className={styles.tileLight}>
+        <div className={styles.containerWide}>
           <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Sản phẩm bán chạy</h2>
-            <Link to="/products?sort=bestseller" className={styles.seeAll}>Xem tất cả</Link>
+            <h2 className="t-display-lg">Sản phẩm bán chạy.</h2>
+            <Link to="/products?sort=bestseller" className="text-link">Xem tất cả ›</Link>
           </div>
-
           {!isLoading && (
-              <div className={styles.grid}>
-                {bestSellers.map(p => (
-                    <ProductCard key={p.id} product={p} />
-                ))}
-              </div>
+            <div className={styles.grid}>
+              {bestSellers.map(p => <ProductCard key={p.id} product={p} />)}
+            </div>
           )}
-        </section>
+        </div>
+      </section>
 
-      </div>
+    </div>
   )
 }

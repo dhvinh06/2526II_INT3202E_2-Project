@@ -9,29 +9,31 @@ const stars = (r) => {
 }
 
 export default function ProductCard({ product }) {
-  const { id, name, price, originalPrice, image, rating, sold, category } = product
+  const { id, name, price, originalPrice, image, rating, sold } = product
   const disc = discount(price, originalPrice)
 
   return (
     <Link to={`/products/${id}`} className={styles.card}>
       <div className={styles.imgWrap}>
-        {disc > 0 && <span className={styles.badge}>-{disc}%</span>}
-        <img src={image} alt={name} loading="lazy" />
-        <div className={styles.quickView}>👁 Xem nhanh</div>
+        <img className={`${styles.image} product-shadow`} src={image} alt={name} loading="lazy" />
       </div>
       <div className={styles.body}>
-        {category && <span className={styles.cat}>{category}</span>}
-        <p className={styles.name}>{name}</p>
+        <p className={`${styles.name} t-body-strong`}>{name}</p>
         <div className={styles.prices}>
-          <span className={styles.sale}>{fmt(price)}</span>
-          {originalPrice > price && <span className={styles.orig}>{fmt(originalPrice)}</span>}
+          <span className={`${styles.sale} t-body`}>{fmt(price)}</span>
+          {originalPrice > price && <span className={`${styles.orig} t-caption`}>{fmt(originalPrice)}</span>}
+          {disc > 0 && <span className={`${styles.disc} t-caption`}>− {disc}%</span>}
         </div>
-        <div className={styles.meta}>
+        <div className={`${styles.meta} t-caption`}>
           {rating != null && Number(rating) > 0 && (
-            <span className={styles.stars} title={`${rating}/5`}>{stars(rating)} <b>{Number(rating).toFixed(1)}</b></span>
+            <span className={styles.rating}>
+              <span className={styles.stars}>{stars(rating)}</span>
+              <span>{Number(rating).toFixed(1)}</span>
+            </span>
           )}
           {sold !== undefined && <span className={styles.sold}>Đã bán {Number(sold).toLocaleString()}</span>}
         </div>
+        <span className={`${styles.cta} text-link`}>Mua ngay ›</span>
       </div>
     </Link>
   )

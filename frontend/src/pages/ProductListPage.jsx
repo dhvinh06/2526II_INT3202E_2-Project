@@ -4,7 +4,6 @@ import { productAPI } from '../api'
 import ProductCard from '../components/ProductCard'
 import styles from './ProductListPage.module.css'
 
-// 12 Mock Products
 const MOCK_PRODUCTS = [
   { id: 1, name: 'Áo thun nam basic oversize Hàn Quốc', category: 'fashion', price: 149000, originalPrice: 220000, rating: 4.8, sold: 2104, image: 'https://picsum.photos/seed/pr1/400/400' },
   { id: 2, name: 'Tai nghe Bluetooth ANC chống ồn', category: 'electronics', price: 890000, originalPrice: 1290000, rating: 4.7, sold: 687, image: 'https://picsum.photos/seed/pr2/400/400' },
@@ -41,17 +40,13 @@ const SORT_OPTIONS = [
 
 export default function ProductListPage() {
   const [searchParams, setSearchParams] = useSearchParams()
-  
-  // States
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 12
 
-  // Filter States
   const [filters, setFilters] = useState({
     search: searchParams.get('search') || '',
     category: searchParams.get('category') || 'all',
@@ -60,7 +55,6 @@ export default function ProductListPage() {
     sortBy: searchParams.get('sort') || 'newest'
   })
 
-  // Sync params to filters when URL changes
   useEffect(() => {
     setFilters(prev => ({
       ...prev,
@@ -71,24 +65,18 @@ export default function ProductListPage() {
     setCurrentPage(1)
   }, [searchParams])
 
-  // Fetch or mock
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true)
       try {
-        const data = await productAPI.getProducts({ 
+        const data = await productAPI.getProducts({
           search: filters.search || undefined,
           categoryId: filters.category !== 'all' ? filters.category : undefined
         })
-        if (data && data.length > 0) {
-          setProducts(data)
-        } else {
-          setProducts(MOCK_PRODUCTS)
-        }
+        setProducts(data && data.length > 0 ? data : MOCK_PRODUCTS)
       } catch (err) {
-        console.error("API error, falling back to mock data", err)
         setError('Không thể tải dữ liệu sản phẩm.')
-        setProducts(MOCK_PRODUCTS) // Fallback to mock on error
+        setProducts(MOCK_PRODUCTS)
       } finally {
         setLoading(false)
       }
@@ -96,54 +84,25 @@ export default function ProductListPage() {
     fetchProducts()
   }, [])
 
-  // Derived state (Filtering & Sorting)
   const filteredProducts = useMemo(() => {
     let result = [...products]
-
-    if (filters.search) {
-      const s = filters.search.toLowerCase()
-      result = result.filter(p => p.name.toLowerCase().includes(s))
-    }
-
-    if (filters.category && filters.category !== 'all') {
-      result = result.filter(p => p.category === filters.category)
-    }
-
-    if (filters.minPrice) {
-      result = result.filter(p => p.price >= Number(filters.minPrice))
-    }
-
-    if (filters.maxPrice) {
-      result = result.filter(p => p.price <= Number(filters.maxPrice))
-    }
-
-    if (filters.sortBy === 'price_asc') {
-      result.sort((a, b) => a.price - b.price)
-    } else if (filters.sortBy === 'price_desc') {
-      result.sort((a, b) => b.price - a.price)
-    } else if (filters.sortBy === 'bestseller') {
-      result.sort((a, b) => b.sold - a.sold)
-    } else {
-      // newest - mock id is auto increment so sort descending
-      result.sort((a, b) => b.id - a.id)
-    }
-
+    if (filters.search) { const s = filters.search.toLowerCase(); result = result.filter(p => p.name.toLowerCase().includes(s)) }
+    if (filters.category && filters.category !== 'all') result = result.filter(p => p.category === filters.category)
+    if (filters.minPrice) result = result.filter(p => p.price >= Number(filters.minPrice))
+    if (filters.maxPrice) result = result.filter(p => p.price <= Number(filters.maxPrice))
+    if (filters.sortBy === 'price_asc') result.sort((a,b) => a.price - b.price)
+    else if (filters.sortBy === 'price_desc') result.sort((a,b) => b.price - a.price)
+    else if (filters.sortBy === 'bestseller') result.sort((a,b) => b.sold - a.sold)
+    else result.sort((a,b) => b.id - a.id)
     return result
   }, [products, filters])
 
-  // Pagination
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage) || 1
-  const paginatedProducts = filteredProducts.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  )
+  const paginatedProducts = filteredProducts.slice((currentPage-1)*itemsPerPage, currentPage*itemsPerPage)
 
-  // Handlers
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }))
     setCurrentPage(1)
-    
-    // Update URL logic (optional based on your need, keeping it simple here)
     if (key === 'category' || key === 'sortBy') {
       const newParams = new URLSearchParams(searchParams)
       if (value === 'all' && key === 'category') newParams.delete('category')
@@ -167,168 +126,99 @@ export default function ProductListPage() {
 
   return (
     <div className={styles.page}>
-      
-      {/* Breadcrumb */}
       <div className={styles.breadcrumb}>
-        <div className={styles.innerBreadcrumb}>
-          <Link to="/">Trang chủ</Link>
-          <span>/</span>
-          <span>Sản phẩm</span>
-          {filters.category !== 'all' && (
-            <>
-              <span>/</span>
-              <span className={styles.currentCrumb}>
-                {CATEGORIES.find(c => c.id === filters.category)?.name}
-              </span>
-            </>
-          )}
+        <div className={`${styles.innerBreadcrumb} t-caption`}>
+          <Link to="/">Trang chủ</Link><span>/</span><span>Sản phẩm</span>
+          {filters.category !== 'all' && <><span>/</span><span className={styles.currentCrumb}>{CATEGORIES.find(c => c.id === filters.category)?.name}</span></>}
         </div>
       </div>
 
       <div className={styles.container}>
-        {/* Mobile Filter Overlay */}
-        <div 
-          className={`${styles.overlay} ${isMobileDrawerOpen ? styles.open : ''}`} 
-          onClick={() => setIsMobileDrawerOpen(false)}
-        />
+        <div className={`${styles.overlay} ${isMobileDrawerOpen ? styles.open : ''}`} onClick={() => setIsMobileDrawerOpen(false)} />
 
-        {/* SIDEBAR */}
         <aside className={`${styles.sidebar} ${isMobileDrawerOpen ? styles.open : ''}`}>
           <div className={styles.sidebarHeader}>
-            <h3>Bộ lọc</h3>
-            <button className={styles.resetBtn} onClick={resetFilters}>Xóa lọc</button>
-            <button className={styles.closeBtn} onClick={() => setIsMobileDrawerOpen(false)}>✕</button>
+            <h3 className="t-tagline">Bộ lọc</h3>
+            <button className={`${styles.closeBtn} btn-icon-circular`} onClick={() => setIsMobileDrawerOpen(false)}>×</button>
           </div>
+          <button onClick={resetFilters} className={`${styles.resetLink} text-link`}>Xóa toàn bộ lọc</button>
 
           <div className={styles.filterSection}>
-            <h4>Danh mục</h4>
-            <div className={styles.radioList}>
+            <h4 className="t-caption-strong">Danh mục</h4>
+            <div className={styles.chipColumn}>
               {CATEGORIES.map(cat => (
-                <label key={cat.id} className={styles.radioItem}>
-                  <input 
-                    type="radio" 
-                    name="category" 
-                    value={cat.id}
-                    checked={filters.category === cat.id}
-                    onChange={() => handleFilterChange('category', cat.id)}
-                  />
-                  <span>{cat.name}</span>
-                </label>
+                <button key={cat.id} type="button"
+                  className={`${styles.optionChip} ${filters.category === cat.id ? styles.optionChipSelected : ''} t-caption`}
+                  onClick={() => handleFilterChange('category', cat.id)}>{cat.name}</button>
               ))}
             </div>
           </div>
 
           <div className={styles.filterSection}>
-            <h4>Khoảng giá (VNĐ)</h4>
+            <h4 className="t-caption-strong">Khoảng giá (VNĐ)</h4>
             <form onSubmit={handlePriceApply} className={styles.priceForm}>
               <div className={styles.priceInputs}>
-                <input type="number" name="min" placeholder="Từ" defaultValue={filters.minPrice} />
-                <span>-</span>
-                <input type="number" name="max" placeholder="Đến" defaultValue={filters.maxPrice} />
+                <input className="pill-input" type="number" name="min" placeholder="Từ" defaultValue={filters.minPrice} />
+                <input className="pill-input" type="number" name="max" placeholder="Đến" defaultValue={filters.maxPrice} />
               </div>
-              <button type="submit" className={styles.applyBtn}>Áp dụng</button>
+              <button type="submit" className="btn-primary">Áp dụng</button>
             </form>
           </div>
 
           <div className={styles.filterSection}>
-            <h4>Sắp xếp</h4>
-            <select 
-              className={styles.sortSelectMobile}
-              value={filters.sortBy}
-              onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-            >
+            <h4 className="t-caption-strong">Sắp xếp</h4>
+            <div className={styles.chipColumn}>
               {SORT_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                <button key={opt.value} type="button"
+                  className={`${styles.optionChip} ${filters.sortBy === opt.value ? styles.optionChipSelected : ''} t-caption`}
+                  onClick={() => handleFilterChange('sortBy', opt.value)}>{opt.label}</button>
               ))}
-            </select>
+            </div>
           </div>
         </aside>
 
-        {/* MAIN CONTENT */}
         <main className={styles.main}>
-          <div className={styles.toolbar}>
-            <div className={styles.info}>
-              Hiển thị <b>{Math.min((currentPage - 1) * itemsPerPage + 1, filteredProducts.length)}</b> - 
-              <b>{Math.min(currentPage * itemsPerPage, filteredProducts.length)}</b> trong tổng số 
-              <b> {filteredProducts.length}</b> sản phẩm
-              {filters.search && ` kết quả cho "${filters.search}"`}
-            </div>
-            
-            <div className={styles.toolbarRight}>
-              <button 
-                className={styles.mobileFilterToggle} 
-                onClick={() => setIsMobileDrawerOpen(true)}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                Bộ lọc
-              </button>
-              
-              <select 
-                className={styles.sortSelect}
-                value={filters.sortBy}
-                onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-              >
-                {SORT_OPTIONS.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-            </div>
+          <div className={styles.headerRow}>
+            <h1 className="t-display-md">Sản phẩm</h1>
+            <button className={`${styles.mobileFilterToggle} btn-dark-utility`} onClick={() => setIsMobileDrawerOpen(true)}>Bộ lọc</button>
+          </div>
+          <div className={`${styles.info} t-caption`}>
+            Hiển thị <b>{Math.min((currentPage-1)*itemsPerPage+1, filteredProducts.length)}</b> – <b>{Math.min(currentPage*itemsPerPage, filteredProducts.length)}</b> trong tổng số <b>{filteredProducts.length}</b> sản phẩm
+            {filters.search && ` · kết quả cho "${filters.search}"`}
           </div>
 
-          {/* Grid / Loading / Empty */}
           {loading ? (
             <div className={styles.grid}>
-              {[...Array(8)].map((_, i) => (
+              {[...Array(8)].map((_,i) => (
                 <div key={i} className={styles.skeletonCard}>
                   <div className={styles.skeletonImg}></div>
-                  <div className={styles.skeletonText} style={{width: '80%'}}></div>
-                  <div className={styles.skeletonText} style={{width: '50%'}}></div>
+                  <div className={styles.skeletonText} style={{width:'80%'}}></div>
+                  <div className={styles.skeletonText} style={{width:'50%'}}></div>
                 </div>
               ))}
             </div>
           ) : filteredProducts.length === 0 ? (
             <div className={styles.emptyState}>
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--gray-400)" strokeWidth="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <h3>Không tìm thấy sản phẩm phù hợp</h3>
-              <p>Vui lòng thử lại với từ khóa hoặc bộ lọc khác.</p>
-              <button onClick={resetFilters} className={styles.resetBtnLarge}>Xóa toàn bộ bộ lọc</button>
+              <h3 className="t-display-md">Không tìm thấy sản phẩm phù hợp</h3>
+              <p className="t-body">Vui lòng thử lại với từ khóa hoặc bộ lọc khác.</p>
+              <button onClick={resetFilters} className="btn-primary">Xóa toàn bộ bộ lọc</button>
             </div>
           ) : (
             <>
               <div className={styles.grid}>
-                {paginatedProducts.map(p => (
-                  <ProductCard key={p.id} product={p} />
-                ))}
+                {paginatedProducts.map(p => <ProductCard key={p.id} product={p} />)}
               </div>
-
               {totalPages > 1 && (
                 <div className={styles.pagination}>
-                  <button 
-                    disabled={currentPage === 1} 
-                    onClick={() => setCurrentPage(p => p - 1)}
-                  >
-                    ❮
-                  </button>
-                  {[...Array(totalPages)].map((_, i) => (
-                    <button 
-                      key={i + 1} 
-                      className={currentPage === i + 1 ? styles.activePage : ''}
-                      onClick={() => setCurrentPage(i + 1)}
-                    >
-                      {i + 1}
-                    </button>
+                  <button className={styles.pageBtn} disabled={currentPage===1} onClick={() => setCurrentPage(p=>p-1)}>‹</button>
+                  {[...Array(totalPages)].map((_,i) => (
+                    <button key={i+1} className={`${styles.pageBtn} ${currentPage===i+1?styles.pageBtnActive:''}`} onClick={() => setCurrentPage(i+1)}>{i+1}</button>
                   ))}
-                  <button 
-                    disabled={currentPage === totalPages} 
-                    onClick={() => setCurrentPage(p => p + 1)}
-                  >
-                    ❯
-                  </button>
+                  <button className={styles.pageBtn} disabled={currentPage===totalPages} onClick={() => setCurrentPage(p=>p+1)}>›</button>
                 </div>
               )}
             </>
           )}
-
         </main>
       </div>
     </div>
