@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import ProductCard from '../components/ProductCard'
-import { productAPI } from '../api/index'
+import { productAPI, categoryAPI } from '../api/index'
 import styles from './HomePage.module.css'
 
 // Fallback mock data — chỉ dùng khi API chưa có dữ liệu (demo/dev)
@@ -20,16 +20,10 @@ const MOCK_PRODUCTS = [
   { id: 12, name: 'Balo laptop chống nước 15.6"', category: 'Phụ kiện', price: 380000, originalPrice: 450000, rating: 4.6, sold: 1023, image: 'https://picsum.photos/seed/pr12/400/400' }
 ]
 
-const CATEGORIES = [
-  { id: 'fashion', name: 'Thời trang', icon: '👗' },
-  { id: 'electronics', name: 'Điện tử', icon: '📱' },
-  { id: 'home', name: 'Gia dụng', icon: '🏠' },
-  { id: 'beauty', name: 'Làm đẹp', icon: '💄' },
-  { id: 'books', name: 'Sách', icon: '📚' },
-  { id: 'accessories', name: 'Phụ kiện', icon: '🎒' },
-]
-
 export default function HomePage() {
+  const [parentCategories, setParentCategories] = useState([])
+  const [childrenMap, setChildrenMap] = useState({})
+  const [selectedParentId, setSelectedParentId] = useState(null)
   const navigate = useNavigate()
   const [products, setProducts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -50,13 +44,34 @@ export default function HomePage() {
     }
 
     fetchProducts()
+
   }, [])
 
-  // Dùng `products` state thật (từ API hoặc fallback mock)
-  const recommendedProducts = products.slice(0, 8)
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await categoryAPI.getAll()
+        const parents  = data.filter(c => c.parentId === null)
+        const children = data.filter(c => c.parentId !== null)
+        const map = {}
+        children.forEach(c => {
+          if (!map[c.parentId]) map[c.parentId] = []
+          map[c.parentId].push(c)
+        })
+        setParentCategories(parents)
+        setChildrenMap(map)
+      } catch (err) {
+        console.error('Lỗi fetch categories:', err)
+      }
+    }
+    fetchCategories()
+  }, [])
 
-  // ⚠️ Sort theo `sold` — cần backend trả về field `sold` trong Product entity
-  // Nếu không có `sold`, thay bằng: [...products].sort((a, b) => b.rating - a.rating)
+  const handleParentClick = (parentId) => {
+    setSelectedParentId(prev => prev === parentId ? null : parentId)
+  }
+
+  const recommendedProducts = products.slice(0, 8)
   const bestSellers = [...products].sort((a, b) => (b.sold ?? 0) - (a.sold ?? 0)).slice(0, 8)
 
   return (
@@ -85,14 +100,33 @@ export default function HomePage() {
         {/* 2. DANH MỤC NỔI BẬT */}
         <section className={styles.container}>
           <h2 className={styles.sectionTitle}>Danh mục nổi bật</h2>
+
           <div className={styles.categoryRow}>
-            {CATEGORIES.map(cat => (
-                <div key={cat.id} className={styles.categoryItem} onClick={() => navigate(`/products?category=${cat.id}`)}>
-                  <div className={styles.catIcon}>{cat.icon}</div>
+            {parentCategories.map(cat => (
+                <div
+                    key={cat.id}
+                    className={`${styles.categoryItem} ${selectedParentId === cat.id ? styles.categoryItemActive : ''}`}
+                    onClick={() => handleParentClick(cat.id)}
+                >
+                  <div className={styles.catIcon}>{cat.icon ?? '🏷️'}</div>
                   <div className={styles.catName}>{cat.name}</div>
                 </div>
             ))}
           </div>
+
+          {selectedParentId && childrenMap[selectedParentId] && (
+              <div className={styles.childList}>
+                {childrenMap[selectedParentId].map(child => (
+                    <div
+                        key={child.id}
+                        className={styles.childItem}
+                        onClick={() => navigate(`/products?categoryId=${child.id}`)}
+                    >
+                      {child.name}
+                    </div>
+                ))}
+              </div>
+          )}
         </section>
 
         {/* 3. SẢN PHẨM ĐỀ XUẤT */}

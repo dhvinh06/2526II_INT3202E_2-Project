@@ -72,6 +72,10 @@ export const productAPI = {
       const res = await axios.get(`/products/${id}`)
       return res.data
     } catch (err) { handleError(err) }
+  },
+  createProduct: async (productData) => {
+    const res = await axios.post('/products', productData)
+    return res.data
   }
 }
 

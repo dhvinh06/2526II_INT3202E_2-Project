@@ -44,7 +44,6 @@ public class ProductService {
         p.setName(req.getName());
         p.setPrice(req.getPrice());
         p.setImage(req.getImage());
-        p.setImages(req.getImages());
         p.setDescription(req.getDescription());
         if (req.getCategoryId() != null) {
             Category c = categoryRepository.findById(req.getCategoryId())

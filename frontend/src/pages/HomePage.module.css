@@ -241,3 +241,30 @@
     gap: 12px;
   }
 }
+
+.categoryItemActive {
+  border: 2px solid var(--white);
+}
+
+.childList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 16px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.childItem {
+  padding: 6px 14px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.childItem:hover {
+  background: #f0f0f0;
+}

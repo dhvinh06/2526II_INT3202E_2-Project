@@ -14,6 +14,12 @@ public class Category {
     private Integer id;
     private String name;
     private String slug;
+    private String icon;
+
+    @Column(name = "parent_id", insertable = false, updatable = false)
+    private Integer parentId;
+
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private Category parent;

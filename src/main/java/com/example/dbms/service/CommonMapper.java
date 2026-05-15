@@ -15,7 +15,7 @@ public final class CommonMapper {
         m.put("name", p.getName());
         m.put("price", p.getPrice());
         m.put("image", p.getImage());
-        m.put("images", p.getImages());
+        m.put("images", p.getImage());
         m.put("description", p.getDescription());
         m.put("rating", p.getRating());
         m.put("sold", p.getSold());
