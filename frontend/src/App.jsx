@@ -11,7 +11,7 @@ import ProfilePage from './pages/ProfilePage'
 import Login from './pages/Login'
 import SellerPage from './pages/SellerPage'
 import AdminPage from './pages/AdminPage'
-
+import CartPage from './pages/CartPage'
 
 
 function Layout() {
@@ -38,6 +38,7 @@ export default function App() {
                         <Route index element={<HomePage/>}/>
                         <Route path="products" element={<ProductListPage/>}/>
                         <Route path="products/:id" element={<ProductDetailPage/>}/>
+                        <Route path="cart" element={<CartPage/>}/>
                         <Route path="checkout" element={<CheckoutPage/>}/>
                         <Route path="profile" element={<ProfilePage/>}/>
                     </Route>

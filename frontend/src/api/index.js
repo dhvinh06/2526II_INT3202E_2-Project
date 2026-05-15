@@ -104,7 +104,21 @@ export const cartAPI = {
 
   getCart: async (userId) => {
     try {
-      const res = await axios.get(`/cart-items/${userId}`)
+      const res = await axios.get(`/cart-items/user/${userId}`)
+      return res.data
+    } catch (err) { handleError(err) }
+  },
+
+  updateQuantity: async (id, data) => {
+    try {
+      const res = await axios.put(`/cart-items/${id}`, data)
+      return res.data
+    } catch (err) { handleError(err) }
+  },
+
+  deleteCartItem: async (id) => {
+    try {
+      const res = await axios.delete(`/cart-items/${id}`)
       return res.data
     } catch (err) { handleError(err) }
   }
@@ -124,6 +138,12 @@ export const orderAPI = {
   checkout: async (userId, data) => {
     try {
       const res = await axios.post(`/orders/checkout/${userId}`, data)
+      return res.data
+    } catch (err) { handleError(err) }
+  },
+  getOrdersByUser: async (userId) => {
+    try {
+      const res = await axios.get(`/orders/user/${userId}`)
       return res.data
     } catch (err) { handleError(err) }
   }

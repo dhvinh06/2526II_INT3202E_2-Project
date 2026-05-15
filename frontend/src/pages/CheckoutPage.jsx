@@ -1,14 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { orderAPI } from '../api'
+import { orderAPI, cartAPI } from '../api'
 import styles from './CheckoutPage.module.css'
 
-// MOCK CART DATA
-const MOCK_CART = [
-  { id: 1, name: 'Áo thun nam basic oversize Hàn Quốc', price: 149000, quantity: 2, image: 'https://picsum.photos/seed/pr1/100/100' },
-  { id: 4, name: 'Bình giữ nhiệt inox 316 500ml', price: 245000, quantity: 1, image: 'https://picsum.photos/seed/pr4/100/100' }
-]
+// Đã xóa MOCK_CART
 
 const fmt = (n) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n)
 
@@ -35,8 +31,25 @@ export default function CheckoutPage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [orderId, setOrderId] = useState('')
 
+  const [cartItems, setCartItems] = useState([])
+  const [loadingCart, setLoadingCart] = useState(true)
+
+  useEffect(() => {
+    const fetchCart = async () => {
+      try {
+        const data = await cartAPI.getCart(user.id)
+        setCartItems(Array.isArray(data) ? data : [])
+      } catch (err) {
+        console.error('Lỗi tải giỏ hàng', err)
+      } finally {
+        setLoadingCart(false)
+      }
+    }
+    fetchCart()
+  }, [user.id])
+
   // Calculations
-  const subtotal = MOCK_CART.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const shippingFee = subtotal >= 500000 ? 0 : 30000
   const total = subtotal + shippingFee
 
@@ -76,18 +89,21 @@ export default function CheckoutPage() {
 
     setLoading(true)
     try {
-      // Thực tế sẽ lấy shippingAddressId từ database hoặc tạo mới
-      try {
-        await orderAPI.checkout(user.id, { shippingAddressId: 1 })
-      } catch (apiErr) {
-        console.warn("API checkout failed, continuing to show success modal for demo", apiErr)
+      const payload = {
+        newAddress: {
+          receiverName: form.receiverName,
+          phone: form.phone,
+          address: form.address,
+          isDefault: false
+        }
       }
       
-      const newOrderId = `ORD-${Math.floor(100000 + Math.random() * 900000)}`
-      setOrderId(newOrderId)
+      const res = await orderAPI.checkout(user.id, payload)
+      
+      setOrderId(res.id)
       setShowSuccessModal(true)
     } catch (err) {
-      setSubmitError('Đã có lỗi xảy ra trong quá trình đặt hàng. Vui lòng thử lại.')
+      setSubmitError(err.message || 'Đã có lỗi xảy ra trong quá trình đặt hàng. Vui lòng thử lại.')
     } finally {
       setLoading(false)
     }
@@ -192,9 +208,11 @@ export default function CheckoutPage() {
               <h2 className={styles.summaryTitle}>Đơn hàng của bạn</h2>
               
               <div className={styles.cartList}>
-                {MOCK_CART.map(item => (
+                {loadingCart ? (
+                  <p>Đang tải dữ liệu...</p>
+                ) : cartItems.map(item => (
                   <div key={item.id} className={styles.cartItem}>
-                    <img src={item.image} alt={item.name} className={styles.itemImg} />
+                    <img src={item.image || 'https://via.placeholder.com/80'} alt={item.name} className={styles.itemImg} />
                     <div className={styles.itemInfo}>
                       <div className={styles.itemName}>{item.name}</div>
                       <div className={styles.itemMeta}>

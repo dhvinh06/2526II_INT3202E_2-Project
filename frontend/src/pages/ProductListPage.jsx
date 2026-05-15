@@ -4,23 +4,7 @@ import { productAPI } from '../api'
 import ProductCard from '../components/ProductCard'
 import styles from './ProductListPage.module.css'
 
-// 12 Mock Products
-const MOCK_PRODUCTS = [
-  { id: 1, name: 'Áo thun nam basic oversize Hàn Quốc', category: 'fashion', price: 149000, originalPrice: 220000, rating: 4.8, sold: 2104, image: 'https://picsum.photos/seed/pr1/400/400' },
-  { id: 2, name: 'Tai nghe Bluetooth ANC chống ồn', category: 'electronics', price: 890000, originalPrice: 1290000, rating: 4.7, sold: 687, image: 'https://picsum.photos/seed/pr2/400/400' },
-  { id: 3, name: 'Váy hoa maxi dáng dài nữ tính', category: 'fashion', price: 289000, originalPrice: 420000, rating: 4.7, sold: 856, image: 'https://picsum.photos/seed/pr3/400/400' },
-  { id: 4, name: 'Bình giữ nhiệt inox 316 500ml', category: 'home', price: 245000, originalPrice: 320000, rating: 4.9, sold: 3102, image: 'https://picsum.photos/seed/pr4/400/400' },
-  { id: 5, name: 'Giày sneaker nam nữ đế êm thoáng khí', category: 'fashion', price: 520000, originalPrice: 650000, rating: 4.6, sold: 1432, image: 'https://picsum.photos/seed/pr5/400/400' },
-  { id: 6, name: 'Đồng hồ thông minh đo sức khoẻ', category: 'electronics', price: 1250000, originalPrice: 1890000, rating: 4.5, sold: 312, image: 'https://picsum.photos/seed/pr6/400/400' },
-  { id: 7, name: 'Loa Bluetooth mini chống nước IPX7', category: 'electronics', price: 450000, originalPrice: 680000, rating: 4.8, sold: 920, image: 'https://picsum.photos/seed/pr7/400/400' },
-  { id: 8, name: 'Nồi chiên không dầu 5L digital', category: 'home', price: 1490000, originalPrice: 2200000, rating: 4.6, sold: 445, image: 'https://picsum.photos/seed/pr8/400/400' },
-  { id: 9, name: 'Bộ dưỡng da 5 bước cho da dầu', category: 'beauty', price: 450000, originalPrice: 650000, rating: 4.7, sold: 780, image: 'https://picsum.photos/seed/pr9/400/400' },
-  { id: 10, name: 'Son môi matte lì 24h siêu bền màu', category: 'beauty', price: 120000, originalPrice: 185000, rating: 4.8, sold: 5200, image: 'https://picsum.photos/seed/pr10/400/400' },
-  { id: 11, name: 'Sách Đắc Nhân Tâm bản mới 2024', category: 'books', price: 78000, originalPrice: 95000, rating: 4.9, sold: 8900, image: 'https://picsum.photos/seed/pr11/400/400' },
-  { id: 12, name: 'Balo laptop chống nước 15.6"', category: 'accessories', price: 380000, originalPrice: 450000, rating: 4.6, sold: 1023, image: 'https://picsum.photos/seed/pr12/400/400' },
-  { id: 13, name: 'Bàn phím cơ không dây RGB', category: 'electronics', price: 650000, originalPrice: 850000, rating: 4.8, sold: 412, image: 'https://picsum.photos/seed/pr13/400/400' },
-  { id: 14, name: 'Áo khoác dù chống nắng UV', category: 'fashion', price: 199000, originalPrice: 250000, rating: 4.5, sold: 1800, image: 'https://picsum.photos/seed/pr14/400/400' }
-]
+// Đã xóa MOCK_PRODUCTS
 
 const CATEGORIES = [
   { id: 'all', name: 'Tất cả' },
@@ -83,12 +67,12 @@ export default function ProductListPage() {
         if (data && data.length > 0) {
           setProducts(data)
         } else {
-          setProducts(MOCK_PRODUCTS)
+          setProducts([])
         }
       } catch (err) {
         console.error("API error, falling back to mock data", err)
         setError('Không thể tải dữ liệu sản phẩm.')
-        setProducts(MOCK_PRODUCTS) // Fallback to mock on error
+        setProducts([]) // Fallback to empty on error
       } finally {
         setLoading(false)
       }
