@@ -10,6 +10,8 @@ import CheckoutPage from './pages/CheckoutPage'
 import ProfilePage from './pages/ProfilePage'
 import Login from './pages/Login'
 import SellerPage from './pages/SellerPage'
+import AdminPage from './pages/AdminPage'
+
 
 
 function Layout() {
@@ -31,6 +33,7 @@ export default function App() {
                 <Routes>
                     <Route path="/login" element={<Login/>}/>
                     <Route path="/" element={<Layout/>}>
+                        <Route path="/admin" element={<AdminPage />} />
                         <Route path="/seller" element={<SellerPage />} />
                         <Route index element={<HomePage/>}/>
                         <Route path="products" element={<ProductListPage/>}/>

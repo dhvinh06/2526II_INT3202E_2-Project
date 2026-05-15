@@ -109,6 +109,16 @@ export const cartAPI = {
     } catch (err) { handleError(err) }
   }
 }
+export const adminAPI = {
+  getPendingProducts: async () => {
+    const res = await axios.get('/admin/products/pending')
+    return res.data
+  },
+  updateProductStatus: async (id, status) => {
+    const res = await axios.put(`/admin/products/${id}/status?status=${status}`)
+    return res.data
+  }
+}
 
 export const orderAPI = {
   checkout: async (userId, data) => {

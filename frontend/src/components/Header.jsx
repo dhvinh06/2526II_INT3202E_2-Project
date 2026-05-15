@@ -4,11 +4,13 @@ import { useAuth } from '../context/AuthContext'
 import styles from './Header.module.css'
 
 
+
 export default function Header() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
+
 
   const handleSearch = (e) => {
     e.preventDefault()
@@ -61,7 +63,12 @@ export default function Header() {
               <path d="M16 10a4 4 0 0 1-8 0"/>
             </svg>
           </Link>
-
+          {user?.role === 'SELLER' && (
+              <Link to="/seller" className={styles.btnOutline}>Seller</Link>
+          )}
+          {user?.role === 'ADMIN' && (
+              <Link to="/admin" className={styles.btnOutline}>Admin</Link>
+          )}
           {user ? (
             <div className={styles.userWrap}>
               <Link to="/profile" className={styles.greeting}>Hi, <b>{user.name.split(' ').pop()}</b></Link>
@@ -81,6 +88,12 @@ export default function Header() {
       {/* Mobile menu */}
       {menuOpen && (
         <div className={styles.mobileMenu}>
+          {user?.role === 'SELLER' && (
+              <Link to="/seller" onClick={() => setMenuOpen(false)}>Seller Dashboard</Link>
+          )}
+          {user?.role === 'ADMIN' && (
+              <Link to="/admin" onClick={() => setMenuOpen(false)}>Admin Dashboard</Link>
+          )}
           <form onSubmit={handleSearch} className={styles.mobileSearch}>
             <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Tìm kiếm..." />
             <button type="submit">Tìm</button>

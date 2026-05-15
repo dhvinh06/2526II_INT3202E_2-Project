@@ -28,6 +28,10 @@ public class ProductService {
     private final BrandRepository brandRepository;
     private String brandName;
 
+    public List<Map<String, Object>> getByStatus(Product.Status status) {
+        return productRepository.findByStatus(status)
+                .stream().map(CommonMapper::product).toList();
+    }
 
     public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository, BrandRepository brandRepository) {
         this.productRepository = productRepository;

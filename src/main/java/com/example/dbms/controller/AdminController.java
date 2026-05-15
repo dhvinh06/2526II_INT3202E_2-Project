@@ -134,12 +134,17 @@ public class AdminController {
         return inventoryReceiptService.byId(id);
     }
 
+    @GetMapping("/products/pending")
+    public List<Map<String, Object>> getPendingProducts() {
+        return productService.getByStatus(Product.Status.PENDING);
+    }
+
     @PutMapping("/products/{id}/status")
-    public ResponseEntity<?> updateStatus(@PathVariable Integer id, @RequestParam String status) {
+    public Object updateProductStatus(@PathVariable Integer id, @RequestParam String status) {
         Product p = productRepository.findById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, HttpStatus.NOT_FOUND, "Product not found"));
         p.setStatus(Product.Status.valueOf(status));
         productRepository.save(p);
-        return ResponseEntity.ok().build();
+        return productService.get(id);
     }
 }

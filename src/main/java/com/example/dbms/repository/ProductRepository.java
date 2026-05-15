@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ProductRepository extends JpaRepository<Product, Integer> {
-    @Query("select p from Product p where (:categoryId is null or p.category.id = :categoryId) and (:brandId is null or p.brand.id = :brandId)")
+    @Query("select p from Product p where (:categoryId is null or p.category.id = :categoryId) and (:brandId is null or p.brand.id = :brandId) and p.status = 'APPROVED'")
     Page<Product> search(@Param("categoryId") Integer categoryId, @Param("brandId") Integer brandId, Pageable pageable);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
@@ -23,4 +23,6 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select p from Product p where p.id in :ids")
     List<Product> findAllByIdInForUpdate(@Param("ids") List<Integer> ids);
+    List<Product> findByStatus(Product.Status status);
+
 }
