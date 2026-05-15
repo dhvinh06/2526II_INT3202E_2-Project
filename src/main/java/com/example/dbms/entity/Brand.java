@@ -14,6 +14,10 @@ public class Brand {
     private Integer id;
     private String name;
     private String description;
+    public Brand() {}
 
+    public Brand(String name) {
+        this.name = name;
+    }
 
 }

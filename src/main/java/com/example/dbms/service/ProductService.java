@@ -9,6 +9,9 @@ import com.example.dbms.exception.ErrorCode;
 import com.example.dbms.repository.BrandRepository;
 import com.example.dbms.repository.CategoryRepository;
 import com.example.dbms.repository.ProductRepository;
+import jakarta.transaction.Transactional;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -16,11 +19,15 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
+@Getter
+@Setter
 @Service
 public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final BrandRepository brandRepository;
+    private String brandName;
+
 
     public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository, BrandRepository brandRepository) {
         this.productRepository = productRepository;
@@ -38,9 +45,10 @@ public class ProductService {
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, HttpStatus.NOT_FOUND, "Product not found")));
     }
 
+    @Transactional
     public Product save(ProductRequest req, Integer id) {
         Product p = id == null ? new Product() : productRepository.findById(id)
-                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, HttpStatus.NOT_FOUND, "Product not found"));
+                                                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, HttpStatus.NOT_FOUND, "Product not found"));
         p.setName(req.getName());
         p.setPrice(req.getPrice());
         p.setImage(req.getImage());
@@ -52,9 +60,9 @@ public class ProductService {
         } else {
             p.setCategory(null);
         }
-        if (req.getBrandId() != null) {
-            Brand b = brandRepository.findById(req.getBrandId())
-                    .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, HttpStatus.NOT_FOUND, "Brand not found"));
+        if (req.getBrandName() != null && !req.getBrandName().isBlank()) {
+            Brand b = brandRepository.findByName(req.getBrandName())
+                    .orElseGet(() -> brandRepository.save(new Brand(req.getBrandName())));
             p.setBrand(b);
         } else {
             p.setBrand(null);
@@ -62,6 +70,7 @@ public class ProductService {
         if (id == null) {
             p.setSold(0);
             p.setStock(0);
+            p.setStatus(Product.Status.PENDING);
         }
         return productRepository.save(p);
     }

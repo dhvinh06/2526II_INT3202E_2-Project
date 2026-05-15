@@ -3,13 +3,19 @@ package com.example.dbms.controller;
 import com.example.dbms.dto.*;
 import com.example.dbms.entity.Brand;
 import com.example.dbms.entity.Category;
+import com.example.dbms.entity.Product;
+import com.example.dbms.exception.ApiException;
+import com.example.dbms.exception.ErrorCode;
 import com.example.dbms.repository.BrandRepository;
 import com.example.dbms.repository.CategoryRepository;
+import com.example.dbms.repository.ProductRepository;
 import com.example.dbms.service.InventoryReceiptService;
 import com.example.dbms.service.OrderService;
 import com.example.dbms.service.ProductService;
 import com.example.dbms.service.UserAdminService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,14 +30,16 @@ public class AdminController {
     private final CategoryRepository categoryRepository;
     private final BrandRepository brandRepository;
     private final InventoryReceiptService inventoryReceiptService;
+    private final ProductRepository productRepository;
 
-    public AdminController(UserAdminService userAdminService, OrderService orderService, ProductService productService, CategoryRepository categoryRepository, BrandRepository brandRepository, InventoryReceiptService inventoryReceiptService) {
+    public AdminController(UserAdminService userAdminService, OrderService orderService, ProductService productService, CategoryRepository categoryRepository, BrandRepository brandRepository, InventoryReceiptService inventoryReceiptService,ProductRepository productRepository) {
         this.userAdminService = userAdminService;
         this.orderService = orderService;
         this.productService = productService;
         this.categoryRepository = categoryRepository;
         this.brandRepository = brandRepository;
         this.inventoryReceiptService = inventoryReceiptService;
+        this.productRepository = productRepository;
     }
 
     @GetMapping("/users")
@@ -56,9 +64,9 @@ public class AdminController {
 
     @PostMapping("/products")
     public Object createProduct(@Valid @RequestBody ProductRequest req) {
-        return productService.save(req, null);
+        Product saved = productService.save(req, null);
+        return productService.get(saved.getId());
     }
-
     @PutMapping("/products/{id}")
     public Object updateProduct(@PathVariable Integer id, @Valid @RequestBody ProductRequest req) {
         return productService.save(req, id);
@@ -124,5 +132,14 @@ public class AdminController {
     @GetMapping("/inventory-receipts/{id}")
     public Map<String, Object> receipt(@PathVariable Integer id) {
         return inventoryReceiptService.byId(id);
+    }
+
+    @PutMapping("/products/{id}/status")
+    public ResponseEntity<?> updateStatus(@PathVariable Integer id, @RequestParam String status) {
+        Product p = productRepository.findById(id)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, HttpStatus.NOT_FOUND, "Product not found"));
+        p.setStatus(Product.Status.valueOf(status));
+        productRepository.save(p);
+        return ResponseEntity.ok().build();
     }
 }

@@ -22,6 +22,7 @@ public final class CommonMapper {
         m.put("stock", p.getStock());
         m.put("categoryId", p.getCategory() != null ? p.getCategory().getId() : null);
         m.put("brandId", p.getBrand() != null ? p.getBrand().getId() : null);
+        m.put("status", p.getStatus() != null ? p.getStatus().name() : null);
         return m;
     }
 

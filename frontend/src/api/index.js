@@ -59,6 +59,13 @@ export const userAPI = {
   }
 }
 
+export const brandAPI = {
+  getAll: async () => {
+    const res = await axios.get('/brands')
+    return res.data
+  }
+}
+
 export const productAPI = {
   getProducts: async (params) => {
     try {
@@ -74,7 +81,7 @@ export const productAPI = {
     } catch (err) { handleError(err) }
   },
   createProduct: async (productData) => {
-    const res = await axios.post('/products', productData)
+    const res = await axios.post('/admin/products', productData)
     return res.data
   }
 }
