@@ -1,0 +1,100 @@
+.page {
+  background: var(--c-canvas-parchment);
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+/* ---------- BREADCRUMB ---------- */
+.breadcrumb { padding: 24px 0 12px; }
+.innerBreadcrumb {
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 0 22px;
+  color: var(--c-ink-muted-48);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.innerBreadcrumb a { color: var(--c-ink-muted-48); transition: color 0.15s ease; }
+.innerBreadcrumb a:hover { color: var(--c-ink); }
+.currentCrumb { color: var(--c-ink); }
+
+.container {
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 0 22px;
+}
+
+.header {
+  margin-bottom: 32px;
+}
+.header h1 { color: var(--c-ink); }
+.subtitle { color: var(--c-ink-muted-48); margin-top: 4px; }
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.row {
+  background: var(--c-canvas);
+  border: 1px solid var(--c-hairline);
+  border-radius: var(--r-lg);
+  padding: var(--s-lg);
+  display: grid;
+  grid-template-columns: 96px 1fr auto;
+  gap: 20px;
+  align-items: center;
+}
+
+.image {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: var(--r-sm);
+  background: var(--c-canvas-parchment);
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.name { color: var(--c-ink); }
+.meta { color: var(--c-ink-muted-48); }
+.description {
+  color: var(--c-ink-muted-80);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.price { color: var(--c-ink); margin-top: 4px; }
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.emptyState {
+  background: var(--c-canvas);
+  border: 1px solid var(--c-hairline);
+  border-radius: var(--r-lg);
+  padding: 64px var(--s-lg);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  color: var(--c-ink);
+}
+.emptyState p { color: var(--c-ink-muted-48); }
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 640px) {
+  .row { grid-template-columns: 1fr; }
+  .actions { flex-direction: row; }
+}
