@@ -127,6 +127,11 @@ public class CustomerController {
         return reviewService.byProduct(productId);
     }
 
+    @DeleteMapping("/reviews/{id}")
+    public void deleteReview(@PathVariable String id, @RequestParam Integer userId) {
+        reviewService.delete(id, userId);
+    }
+
     @PutMapping("/products/{id}/stock")
     public void updateProductStock(@PathVariable Integer id, @RequestBody Map<String, Integer> req) {
         productService.updateStock(id, req.get("quantityChange"), req.get("userId"));

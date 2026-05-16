@@ -179,9 +179,9 @@ export const reviewAPI = {
       return res.data
     } catch (err) { handleError(err) }
   },
-  delete: async (id) => {
+  delete: async (id, userId) => {
     try {
-      const res = await axios.delete(`/reviews/${id}`)
+      const res = await axios.delete(`/reviews/${id}`, { params: { userId } })
       return res.data
     } catch (err) { handleError(err) }
   }
