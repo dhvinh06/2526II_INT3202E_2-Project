@@ -9,6 +9,7 @@ import com.example.dbms.exception.ErrorCode;
 import com.example.dbms.repository.BrandRepository;
 import com.example.dbms.repository.CategoryRepository;
 import com.example.dbms.repository.ProductRepository;
+import com.example.dbms.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,6 +27,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final BrandRepository brandRepository;
+    private final UserRepository userRepository;
     private String brandName;
 
     public List<Map<String, Object>> getByStatus(Product.Status status) {
@@ -33,15 +35,21 @@ public class ProductService {
                 .stream().map(CommonMapper::product).toList();
     }
 
-    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository, BrandRepository brandRepository) {
+    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository, BrandRepository brandRepository, UserRepository userRepository) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.brandRepository = brandRepository;
+        this.userRepository = userRepository;
     }
 
     public List<Map<String, Object>> browse(Integer categoryId, Integer brandId, String search, int page, int size) {
         return productRepository.search(categoryId, brandId, search, PageRequest.of(page, size))
                 .map(CommonMapper::product).toList();
+    }
+
+    public List<Map<String, Object>> getBySeller(Integer sellerId, String search) {
+        return productRepository.findBySeller(sellerId, search)
+                .stream().map(CommonMapper::product).toList();
     }
 
     public Map<String, Object> get(Integer id) {
@@ -71,6 +79,16 @@ public class ProductService {
         } else {
             p.setBrand(null);
         }
+
+        if (req.getSellerId() != null) {
+            com.example.dbms.entity.User seller = userRepository.findById(req.getSellerId())
+                    .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, HttpStatus.NOT_FOUND, "Seller not found"));
+            if (!"SELLER".equals(seller.getRole().getName())) {
+                throw new ApiException(ErrorCode.NOT_ALLOWED, HttpStatus.FORBIDDEN, "Only users with role SELLER can be linked as product sellers");
+            }
+            p.setSeller(seller);
+        }
+
         if (id == null) {
             p.setSold(0);
             p.setStock(req.getStock() != null ? req.getStock() : 0);
@@ -81,6 +99,26 @@ public class ProductService {
             }
         }
         return productRepository.save(p);
+    }
+
+    @Transactional
+    public void updateStock(Integer id, Integer quantityChange, Integer userId) {
+        Product p = productRepository.findById(id)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, HttpStatus.NOT_FOUND, "Product not found"));
+        
+        if (p.getSeller() != null && !p.getSeller().getId().equals(userId)) {
+            throw new ApiException(ErrorCode.NOT_ALLOWED, HttpStatus.FORBIDDEN, "You are not the seller of this product");
+        }
+        
+        productRepository.updateProductStock(id, quantityChange);
+    }
+
+    @Transactional
+    public void updateStatus(Integer id, Product.Status status) {
+        Product p = productRepository.findById(id)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, HttpStatus.NOT_FOUND, "Product not found"));
+        p.setStatus(status);
+        productRepository.save(p);
     }
 
     public void delete(Integer id) {

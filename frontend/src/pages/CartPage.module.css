@@ -218,6 +218,68 @@
   color: var(--gray-600);
 }
 
+.couponSection {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.couponInputWrapper {
+  display: flex;
+  gap: 8px;
+}
+
+.couponInput {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--gray-200);
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+}
+
+.couponInput:focus {
+  border-color: var(--c-primary);
+}
+
+.applyBtn {
+  padding: 8px 16px;
+  background: white;
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.applyBtn:hover:not(:disabled) {
+  border-color: var(--c-primary);
+  color: var(--c-primary);
+}
+
+.applyBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.couponError {
+  color: #ff4d4f;
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+.couponSuccess {
+  color: #52c41a;
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+.discountRow {
+  color: #ff4d4f!important;
+  font-weight: 500;
+}
+
 .shippingNote {
   font-size: 13px;
   color: var(--gray-500);

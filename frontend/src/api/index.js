@@ -80,8 +80,18 @@ export const productAPI = {
       return res.data
     } catch (err) { handleError(err) }
   },
+  getBySeller: async (sellerId, search) => {
+    try {
+      const res = await axios.get(`/products/seller/${sellerId}`, { params: { search } })
+      return res.data
+    } catch (err) { handleError(err) }
+  },
   createProduct: async (productData) => {
     const res = await axios.post('/admin/products', productData)
+    return res.data
+  },
+  updateStock: async (id, quantityChange, userId) => {
+    const res = await axios.put(`/products/${id}/stock`, { quantityChange, userId })
     return res.data
   }
 }
@@ -138,6 +148,12 @@ export const orderAPI = {
   checkout: async (userId, data) => {
     try {
       const res = await axios.post(`/orders/checkout/${userId}`, data)
+      return res.data
+    } catch (err) { handleError(err) }
+  },
+  checkCoupon: async (userId, code) => {
+    try {
+      const res = await axios.post(`/orders/check-coupon/${userId}`, { code })
       return res.data
     } catch (err) { handleError(err) }
   },

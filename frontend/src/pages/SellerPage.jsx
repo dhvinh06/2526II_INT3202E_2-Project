@@ -18,7 +18,10 @@ export default function SellerPage() {
             <div className={styles.container}>
                 <div className={styles.header}>
                     <h1 className="t-display-md">Đăng sản phẩm mới.</h1>
-                    <p className={`t-caption ${styles.subtitle}`}>Sản phẩm sẽ chờ quản trị viên duyệt trước khi hiển thị.</p>
+                    <div className={styles.headerActions}>
+                        <p className={`t-caption ${styles.subtitle}`}>Sản phẩm sẽ chờ quản trị viên duyệt trước khi hiển thị.</p>
+                        <Link to="/seller/inventory" className="btn-secondary-pill">📦 Quản lý kho hàng</Link>
+                    </div>
                 </div>
                 <ProductForm />
             </div>

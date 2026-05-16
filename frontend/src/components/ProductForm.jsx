@@ -1,9 +1,11 @@
 import {useEffect, useState} from 'react'
 import {uploadImageToCloudinary} from '../api/cloudinary'
 import {productAPI, categoryAPI, brandAPI} from '../api'
+import {useAuth} from '../context/AuthContext'
 import styles from './ProductForm.module.css'
 
 export default function ProductForm() {
+    const {user} = useAuth()
     const [imageUrl, setImageUrl] = useState('')
     const [preview, setPreview] = useState('')
     const [uploading, setUploading] = useState(false)
@@ -50,7 +52,9 @@ export default function ProductForm() {
                 ...form, price: parseInt(form.price),
                 stock: parseInt(form.stock) || 0,
                 categoryId: parseInt(form.categoryId),
-                brandName: finalBrand, image: imageUrl
+                brandName: finalBrand, 
+                image: imageUrl,
+                sellerId: user?.id
             })
             alert('Đăng sản phẩm thành công!')
             // Reset form

@@ -7,7 +7,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ReviewRepository extends JpaRepository<Review, String> {
-    List<Review> findByProductId(Integer productId);
+    @org.springframework.data.jpa.repository.Query("select r from Review r join fetch r.user where r.product.id = :productId")
+    List<Review> findByProductId(@org.springframework.data.repository.query.Param("productId") Integer productId);
 
     Optional<Review> findByProductIdAndUserId(Integer productId, Integer userId);
 }
