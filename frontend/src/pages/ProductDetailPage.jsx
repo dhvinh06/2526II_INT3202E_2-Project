@@ -51,8 +51,9 @@ export default function ProductDetailPage() {
 
     const handleDeleteReview = async (reviewId) => {
         if (!window.confirm('Xóa đánh giá này?')) return
+        if (!user?.id) return
         try {
-            await reviewAPI.delete(reviewId)
+            await reviewAPI.delete(reviewId, user.id)
             setReviews(prev => prev.filter(r => r.id !== reviewId))
         } catch (err) {
             alert('Không thể xóa đánh giá.')

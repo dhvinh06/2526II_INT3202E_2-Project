@@ -11,6 +11,7 @@ import com.example.dbms.repository.ReviewRepository;
 import com.example.dbms.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -63,6 +64,32 @@ public class ReviewService {
 
     public List<Map<String, Object>> byProduct(Integer productId) {
         return reviewRepository.findByProductId(productId).stream().map(this::toMap).toList();
+    }
+
+    @Transactional
+    public void delete(String reviewId, Integer userId) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, HttpStatus.NOT_FOUND, "Review not found"));
+        User actor = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, HttpStatus.NOT_FOUND, "User not found"));
+
+        boolean isOwner = review.getUser().getId().equals(userId);
+        boolean isAdmin = actor.getRole() != null && "ADMIN".equals(actor.getRole().getName());
+        if (!isOwner && !isAdmin) {
+            throw new ApiException(ErrorCode.NOT_ALLOWED, HttpStatus.FORBIDDEN, "Only the review author or an admin can delete this review");
+        }
+
+        Integer productId = review.getProduct().getId();
+        reviewRepository.delete(review);
+
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, HttpStatus.NOT_FOUND, "Product not found"));
+        List<Review> remaining = reviewRepository.findByProductId(productId);
+        double avg = remaining.isEmpty()
+                ? 0
+                : remaining.stream().mapToInt(Review::getRating).average().orElse(0);
+        product.setRating(BigDecimal.valueOf(avg).setScale(1, RoundingMode.HALF_UP));
+        productRepository.save(product);
     }
 
     private String genId() {
