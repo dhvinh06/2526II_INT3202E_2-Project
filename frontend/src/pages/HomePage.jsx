@@ -2,9 +2,11 @@ import {Link, useNavigate} from 'react-router-dom'
 import {useState, useEffect} from 'react'
 import ProductCard from '../components/ProductCard'
 import {productAPI, categoryAPI} from '../api/index'
+import {useAuth} from '../context/AuthContext'
 import styles from './HomePage.module.css'
 
 export default function HomePage() {
+    const {user} = useAuth()
     const [parentCategories, setParentCategories] = useState([])
     const [childrenMap, setChildrenMap] = useState({})
     const [selectedParentId, setSelectedParentId] = useState(null)
@@ -116,17 +118,19 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* 4. MID DARK */}
-            <section className={styles.tileDark}>
-                <div className={styles.tileInner}>
-                    <h2 className={`t-display-lg ${styles.darkTitle}`}>Giảm đến 50% cho thành viên mới.</h2>
-                    <p className={`t-lead ${styles.darkLead}`}>Đăng ký tài khoản ngay hôm nay để nhận ưu đãi.</p>
-                    <div className={styles.ctaRow}>
-                        <button className="btn-primary" onClick={() => navigate('/login')}>Đăng ký ngay</button>
-                        <Link to="/products" className="text-link text-link-on-dark">Xem sản phẩm ›</Link>
+            {/* 4. MID DARK (guest only) */}
+            {!user && (
+                <section className={styles.tileDark}>
+                    <div className={styles.tileInner}>
+                        <h2 className={`t-display-lg ${styles.darkTitle}`}>Giảm đến 50% cho thành viên mới.</h2>
+                        <p className={`t-lead ${styles.darkLead}`}>Đăng ký tài khoản ngay hôm nay để nhận ưu đãi.</p>
+                        <div className={styles.ctaRow}>
+                            <button className="btn-primary" onClick={() => navigate('/login')}>Đăng ký ngay</button>
+                            <Link to="/products" className="text-link text-link-on-dark">Xem sản phẩm ›</Link>
+                        </div>
                     </div>
-                </div>
-            </section>
+                </section>
+            )}
 
             {/* 5. BESTSELLERS */}
             <section className={styles.tileLight}>
