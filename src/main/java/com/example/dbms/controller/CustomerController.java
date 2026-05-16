@@ -42,6 +42,11 @@ public class CustomerController {
         return productService.get(id);
     }
 
+    @GetMapping("/products/seller/{sellerId}")
+    public List<Map<String, Object>> productsBySeller(@PathVariable Integer sellerId, @RequestParam(required = false) String search) {
+        return productService.getBySeller(sellerId, search);
+    }
+
     @GetMapping("/categories")
     public List<?> categories() {
         return categoryRepository.findAll();
@@ -75,6 +80,11 @@ public class CustomerController {
     @PostMapping("/orders/checkout/{userId}")
     public Map<String, Object> checkout(@PathVariable Integer userId, @RequestBody(required = false) CheckoutRequest req) {
         return orderService.checkout(userId, req);
+    }
+
+    @PostMapping("/orders/check-coupon/{userId}")
+    public Map<String, Object> checkCoupon(@PathVariable Integer userId, @RequestBody Map<String, String> req) {
+        return orderService.checkCoupon(userId, req.get("code"));
     }
 
     @GetMapping("/orders/{orderId}")
@@ -115,5 +125,10 @@ public class CustomerController {
     @GetMapping("/reviews/product/{productId}")
     public List<Map<String, Object>> reviews(@PathVariable Integer productId) {
         return reviewService.byProduct(productId);
+    }
+
+    @PutMapping("/products/{id}/stock")
+    public void updateProductStock(@PathVariable Integer id, @RequestBody Map<String, Integer> req) {
+        productService.updateStock(id, req.get("quantityChange"), req.get("userId"));
     }
 }

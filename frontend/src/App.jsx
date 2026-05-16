@@ -11,6 +11,7 @@ import ProfilePage from './pages/ProfilePage'
 import Login from './pages/Login'
 import SellerPage from './pages/SellerPage'
 import AdminPage from './pages/AdminPage'
+import InventoryPage from './pages/InventoryPage'
 import CartPage from './pages/CartPage'
 
 
@@ -35,6 +36,7 @@ export default function App() {
                     <Route path="/" element={<Layout/>}>
                         <Route path="/admin" element={<AdminPage />} />
                         <Route path="/seller" element={<SellerPage />} />
+                        <Route path="/seller/inventory" element={<InventoryPage />} />
                         <Route index element={<HomePage/>}/>
                         <Route path="products" element={<ProductListPage/>}/>
                         <Route path="products/:id" element={<ProductDetailPage/>}/>

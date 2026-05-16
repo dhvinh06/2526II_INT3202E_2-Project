@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { cartAPI } from '../api'
+import { cartAPI, orderAPI } from '../api'
 import styles from './CartPage.module.css'
 
 const fmt = (n) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n)
@@ -13,6 +13,11 @@ export default function CartPage() {
   const [cartItems, setCartItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+
+  const [couponInput, setCouponInput] = useState('')
+  const [appliedCoupon, setAppliedCoupon] = useState(null)
+  const [checkingCoupon, setCheckingCoupon] = useState(false)
+  const [couponError, setCouponError] = useState('')
 
   useEffect(() => {
     if (!user) {
@@ -35,6 +40,28 @@ export default function CartPage() {
     }
   }
 
+  const handleApplyCoupon = async () => {
+    if (!couponInput.trim()) return
+    setCheckingCoupon(true)
+    setCouponError('')
+    try {
+      const res = await orderAPI.checkCoupon(user.id, couponInput.trim())
+      if (res.valid) {
+        setAppliedCoupon({
+          code: couponInput.trim(),
+          discountPercent: res.discountPercent,
+          discountAmount: res.discountAmount,
+          discountedTotal: res.discountedTotal
+        })
+      }
+    } catch (err) {
+      setCouponError(err.message || 'Mã giảm giá không hợp lệ')
+      setAppliedCoupon(null)
+    } finally {
+      setCheckingCoupon(false)
+    }
+  }
+
   const handleUpdateQty = async (id, currentQty, delta) => {
     const nextQty = currentQty + delta
     if (nextQty < 1) return
@@ -42,6 +69,7 @@ export default function CartPage() {
     try {
       await cartAPI.updateQuantity(id, { quantity: nextQty })
       setCartItems(prev => prev.map(item => item.id === id ? { ...item, quantity: nextQty } : item))
+      setAppliedCoupon(null) // Reset coupon when quantity changes as total changes
     } catch (err) {
       alert('Không thể cập nhật số lượng.')
     }
@@ -53,12 +81,14 @@ export default function CartPage() {
     try {
       await cartAPI.deleteCartItem(id)
       setCartItems(prev => prev.filter(item => item.id !== id))
+      setAppliedCoupon(null)
     } catch (err) {
       alert('Lỗi xóa sản phẩm.')
     }
   }
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const finalTotal = appliedCoupon ? appliedCoupon.discountedTotal : subtotal
 
   if (!user) return null
 
@@ -117,12 +147,41 @@ export default function CartPage() {
                 <span>Tạm tính:</span>
                 <span>{fmt(subtotal)}</span>
               </div>
+              
+              <div className={styles.couponSection}>
+                <div className={styles.couponInputWrapper}>
+                  <input 
+                    type="text" 
+                    placeholder="Mã giảm giá (VD: GIAM10)" 
+                    value={couponInput}
+                    onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                    className={styles.couponInput}
+                  />
+                  <button 
+                    onClick={handleApplyCoupon} 
+                    disabled={checkingCoupon || !couponInput.trim()}
+                    className={styles.applyBtn}
+                  >
+                    {checkingCoupon ? '...' : 'Áp dụng'}
+                  </button>
+                </div>
+                {couponError && <p className={styles.couponError}>{couponError}</p>}
+                {appliedCoupon && <p className={styles.couponSuccess}>Đã áp dụng mã {appliedCoupon.code}</p>}
+              </div>
+
+              {appliedCoupon && (
+                <div className={`${styles.calcRow} ${styles.discountRow}`}>
+                  <span>Giảm giá ({appliedCoupon.discountPercent}%):</span>
+                  <span>-{fmt(appliedCoupon.discountAmount)}</span>
+                </div>
+              )}
+
               <p className={styles.shippingNote}>Phí vận chuyển sẽ được tính ở bước thanh toán.</p>
               <div className={styles.totalRow}>
                 <span>Tổng cộng:</span>
-                <span className={styles.totalPrice}>{fmt(subtotal)}</span>
+                <span className={styles.totalPrice}>{fmt(finalTotal)}</span>
               </div>
-              <button className={styles.checkoutBtn} onClick={() => navigate('/checkout')}>
+              <button className={styles.checkoutBtn} onClick={() => navigate('/checkout', { state: { couponCode: appliedCoupon?.code } })}>
                 Tiến hành thanh toán
               </button>
             </div>

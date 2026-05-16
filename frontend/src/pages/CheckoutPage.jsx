@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { useNavigate, Navigate } from 'react-router-dom'
+import { useState, useEffect, useCallback } from 'react'
+import { useNavigate, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { orderAPI, cartAPI } from '../api'
 import styles from './CheckoutPage.module.css'
@@ -9,6 +9,7 @@ const fmt = (n) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency:
 export default function CheckoutPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
 
   if (!user) return <Navigate to="/login" replace />
 
@@ -22,11 +23,44 @@ export default function CheckoutPage() {
   const [cartItems, setCartItems] = useState([])
   const [loadingCart, setLoadingCart] = useState(true)
 
+  const [couponInput, setCouponInput] = useState(location.state?.couponCode || '')
+  const [appliedCoupon, setAppliedCoupon] = useState(null)
+  const [checkingCoupon, setCheckingCoupon] = useState(false)
+  const [couponError, setCouponError] = useState('')
+
+  const handleApplyCoupon = useCallback(async (codeToApply) => {
+    const code = codeToApply || couponInput
+    if (!code.trim()) return
+    setCheckingCoupon(true)
+    setCouponError('')
+    try {
+      const res = await orderAPI.checkCoupon(user.id, code.trim())
+      if (res.valid) {
+        setAppliedCoupon({
+          code: code.trim(),
+          discountPercent: res.discountPercent,
+          discountAmount: res.discountAmount,
+          discountedTotal: res.discountedTotal
+        })
+      }
+    } catch (err) {
+      setCouponError(err.message || 'Mã giảm giá không hợp lệ')
+      setAppliedCoupon(null)
+    } finally {
+      setCheckingCoupon(false)
+    }
+  }, [couponInput, user?.id])
+
   useEffect(() => {
     const fetchCart = async () => {
       try {
         const data = await cartAPI.getCart(user.id)
         setCartItems(Array.isArray(data) ? data : [])
+        
+        // Auto apply coupon if coming from cart with a code
+        if (location.state?.couponCode) {
+          handleApplyCoupon(location.state.couponCode)
+        }
       } catch (err) {
         console.error('Lỗi tải giỏ hàng', err)
       } finally {
@@ -34,11 +68,12 @@ export default function CheckoutPage() {
       }
     }
     fetchCart()
-  }, [user.id])
+  }, [user.id, location.state?.couponCode, handleApplyCoupon])
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const shippingFee = subtotal >= 500000 ? 0 : 30000
-  const total = subtotal + shippingFee
+  const finalSubtotal = appliedCoupon ? appliedCoupon.discountedTotal : subtotal
+  const total = finalSubtotal + shippingFee
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -62,7 +97,8 @@ export default function CheckoutPage() {
     setLoading(true)
     try {
       const payload = {
-        newAddress: { receiverName: form.receiverName, phone: form.phone, address: form.address, isDefault: false }
+        newAddress: { receiverName: form.receiverName, phone: form.phone, address: form.address, isDefault: false },
+        couponCode: appliedCoupon ? appliedCoupon.code : null
       }
       const res = await orderAPI.checkout(user.id, payload)
       setOrderId(res.id)
@@ -147,8 +183,35 @@ export default function CheckoutPage() {
                   </div>
                 ))}
               </div>
+              
+              <div className={styles.couponSection}>
+                <div className={styles.couponInputWrapper}>
+                  <input 
+                    type="text" 
+                    placeholder="Nhập mã giảm giá (VD: GIAM10)" 
+                    value={couponInput}
+                    onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                    className={`pill-input ${styles.couponInput}`}
+                  />
+                  <button 
+                    onClick={handleApplyCoupon} 
+                    disabled={checkingCoupon || !couponInput.trim()}
+                    className={`btn-secondary-pill ${styles.applyBtn}`}
+                  >
+                    {checkingCoupon ? '...' : 'Áp dụng'}
+                  </button>
+                </div>
+                {couponError && <div className={`t-caption ${styles.couponError}`}>{couponError}</div>}
+              </div>
+
               <div className={styles.summaryCalc}>
                 <div className={`t-body ${styles.calcRow}`}><span>Tạm tính</span><span>{fmt(subtotal)}</span></div>
+                {appliedCoupon && (
+                  <div className={`t-body ${styles.calcRow} ${styles.discountRow}`}>
+                    <span>Giảm giá ({appliedCoupon.code})</span>
+                    <span>-{fmt(appliedCoupon.discountAmount)}</span>
+                  </div>
+                )}
                 <div className={`t-body ${styles.calcRow}`}><span>Phí vận chuyển</span><span>{shippingFee === 0 ? <span className={styles.freeShip}>Miễn phí</span> : fmt(shippingFee)}</span></div>
               </div>
               <div className={styles.totalRow}>

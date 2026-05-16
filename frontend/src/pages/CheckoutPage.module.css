@@ -33,6 +33,16 @@
 .itemInfo { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
 .itemName { color: var(--c-ink); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
 .itemMeta { display: flex; justify-content: space-between; color: var(--c-ink-muted-48); }
+
+.couponSection { display: flex; flex-direction: column; gap: 8px; padding-bottom: 16px; border-bottom: 1px solid var(--c-hairline); }
+.couponInputWrapper { display: flex; gap: 8px; }
+.couponInput { flex: 1; min-width: 0; padding: 10px 16px; border: 1px solid var(--c-hairline); border-radius: var(--r-pill); background: var(--c-canvas); color: var(--c-ink); font-family: var(--font-text); font-size: 15px; outline: none; transition: border-color 0.15s; }
+.couponInput:focus { border-color: var(--c-primary-focus); }
+.applyBtn { padding: 10px 16px; height: auto; }
+.applyBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+.couponError { color: var(--c-primary); }
+.discountRow { color: var(--c-primary); font-weight: 500; }
+
 .summaryCalc { display: flex; flex-direction: column; gap: 8px; padding-bottom: 16px; border-bottom: 1px solid var(--c-hairline); }
 .calcRow { display: flex; justify-content: space-between; color: var(--c-ink-muted-80); }
 .freeShip { color: var(--c-ink); font-weight: 600; }
