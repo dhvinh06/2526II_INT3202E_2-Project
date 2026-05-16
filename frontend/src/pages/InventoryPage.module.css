@@ -1,0 +1,27 @@
+.page { background: var(--c-canvas-parchment); min-height: 100vh; padding-bottom: 80px; }
+.breadcrumb { background: var(--c-canvas); border-bottom: 1px solid var(--c-hairline); padding: 12px 0; margin-bottom: 32px; }
+.innerBreadcrumb { max-width: 1440px; margin: 0 auto; padding: 0 22px; display: flex; align-items: center; gap: 8px; color: var(--c-ink-muted-48); }
+.innerBreadcrumb a { color: inherit; text-decoration: none; }
+.innerBreadcrumb a:hover { color: var(--c-ink); }
+.currentCrumb { color: var(--c-ink); font-weight: 500; }
+
+.container { max-width: 1440px; margin: 0 auto; padding: 0 22px; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 20px; }
+.searchBox { display: flex; gap: 12px; min-width: 320px; }
+.searchBox input { flex: 1; }
+
+.tableWrapper { background: var(--c-canvas); border: 1px solid var(--c-hairline); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-sm); }
+.table { width: 100%; border-collapse: collapse; text-align: left; }
+.table th { background: var(--c-canvas-parchment); padding: 16px 20px; border-bottom: 1px solid var(--c-hairline); color: var(--c-ink-muted-48); }
+.table td { padding: 16px 20px; border-bottom: 1px solid var(--c-hairline); vertical-align: middle; }
+.table tr:last-child td { border-bottom: none; }
+
+.productCell { display: flex; align-items: center; gap: 16px; }
+.thumb { width: 48px; height: 48px; object-fit: cover; border-radius: var(--r-sm); background: var(--c-canvas-parchment); }
+
+@media (max-width: 768px) {
+    .header { flex-direction: column; align-items: flex-start; }
+    .searchBox { width: 100%; }
+    .table th:nth-child(2), .table td:nth-child(2),
+    .table th:nth-child(4), .table td:nth-child(4) { display: none; }
+}

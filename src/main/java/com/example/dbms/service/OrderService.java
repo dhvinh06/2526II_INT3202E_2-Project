@@ -21,15 +21,17 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final ShippingAddressService shippingAddressService;
+    private final CouponRepository couponRepository;
     private final Random random = new Random();
 
-    public OrderService(UserRepository userRepository, CartItemRepository cartItemRepository, ProductRepository productRepository, OrderRepository orderRepository, OrderItemRepository orderItemRepository, ShippingAddressService shippingAddressService) {
+    public OrderService(UserRepository userRepository, CartItemRepository cartItemRepository, ProductRepository productRepository, OrderRepository orderRepository, OrderItemRepository orderItemRepository, ShippingAddressService shippingAddressService, CouponRepository couponRepository) {
         this.userRepository = userRepository;
         this.cartItemRepository = cartItemRepository;
         this.productRepository = productRepository;
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.shippingAddressService = shippingAddressService;
+        this.couponRepository = couponRepository;
     }
 
     @Transactional
@@ -61,11 +63,28 @@ public class OrderService {
             total += p.getPrice() * ci.getQuantity();
         }
 
+        int finalTotal = total;
+        int discountAmount = 0;
+        String appliedCouponCode = null;
+
+        if (req != null && req.getCouponCode() != null && !req.getCouponCode().trim().isEmpty()) {
+            Coupon coupon = couponRepository.findById(req.getCouponCode().trim().toUpperCase())
+                    .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, HttpStatus.NOT_FOUND, "Coupon not found"));
+            if (!Boolean.TRUE.equals(coupon.getActive())) {
+                throw new ApiException(ErrorCode.BAD_REQUEST, HttpStatus.BAD_REQUEST, "Coupon is not active");
+            }
+            finalTotal = couponRepository.calculateDiscountedTotal(total, coupon.getDiscountPercent());
+            discountAmount = total - finalTotal;
+            appliedCouponCode = coupon.getId();
+        }
+
         Order order = new Order();
         order.setId(generateOrderId());
         order.setUser(user);
         order.setStatus("PENDING");
-        order.setTotalAmount(total);
+        order.setTotalAmount(finalTotal);
+        order.setDiscountAmount(discountAmount);
+        order.setCouponCode(appliedCouponCode);
         order.setCreatedAt(java.time.Instant.now());
         order = orderRepository.save(order);
 
@@ -130,6 +149,35 @@ public class OrderService {
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, HttpStatus.NOT_FOUND, "Order not found"));
         order.setStatus(status);
         return CommonMapper.order(orderRepository.save(order));
+    }
+
+    public Map<String, Object> checkCoupon(Integer userId, String couponCode) {
+        List<CartItem> cartItems = cartItemRepository.findByUserId(userId);
+        if (cartItems.isEmpty()) {
+            throw new ApiException(ErrorCode.EMPTY_CART, HttpStatus.BAD_REQUEST, "Cart is empty");
+        }
+        int total = 0;
+        for (CartItem ci : cartItems) {
+            total += ci.getPrice() * ci.getQuantity();
+        }
+
+        Coupon coupon = couponRepository.findById(couponCode.trim().toUpperCase())
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, HttpStatus.NOT_FOUND, "Coupon not found"));
+        
+        if (!Boolean.TRUE.equals(coupon.getActive())) {
+            throw new ApiException(ErrorCode.BAD_REQUEST, HttpStatus.BAD_REQUEST, "Coupon is not active");
+        }
+
+        int discountedTotal = couponRepository.calculateDiscountedTotal(total, coupon.getDiscountPercent());
+        int discountAmount = total - discountedTotal;
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("valid", true);
+        result.put("discountPercent", coupon.getDiscountPercent());
+        result.put("originalTotal", total);
+        result.put("discountedTotal", discountedTotal);
+        result.put("discountAmount", discountAmount);
+        return result;
     }
 
     private String generateOrderId() {

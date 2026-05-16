@@ -7,4 +7,5 @@
 .container { max-width: 720px; margin: 0 auto; padding: 0 22px; }
 .header { margin-bottom: 32px; }
 .header h1 { color: var(--c-ink); }
+.headerActions { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; }
 .subtitle { color: var(--c-ink-muted-48); margin-top: 4px; }

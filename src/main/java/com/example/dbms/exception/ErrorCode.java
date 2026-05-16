@@ -8,5 +8,6 @@ public enum ErrorCode {
     BAD_REQUEST,
     INTERNAL_ERROR,
     UNAUTHORIZED,
-    CONFLICT
+    CONFLICT,
+    NOT_ALLOWED
 }

@@ -28,6 +28,9 @@ public class Product {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "brand_id")
     private Brand brand;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seller_id")
+    private User seller;
 
     public enum Status { PENDING, APPROVED, REJECTED }
     @Enumerated(EnumType.STRING)

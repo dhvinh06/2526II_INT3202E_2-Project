@@ -22,4 +22,10 @@ public class Order {
     private String status;
     @Column(name = "created_at")
     private Instant createdAt;
+    
+    @Column(name = "discount_amount")
+    private Integer discountAmount;
+    
+    @Column(name = "coupon_code")
+    private String couponCode;
 }

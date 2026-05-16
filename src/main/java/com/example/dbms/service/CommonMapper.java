@@ -33,6 +33,8 @@ public final class CommonMapper {
         m.put("totalAmount", o.getTotalAmount());
         m.put("status", o.getStatus());
         m.put("createdAt", o.getCreatedAt());
+        m.put("discountAmount", o.getDiscountAmount());
+        m.put("couponCode", o.getCouponCode());
         return m;
     }
 }
