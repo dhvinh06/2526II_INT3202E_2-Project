@@ -58,7 +58,7 @@ export default function Header() {
         <div className={styles.actions}>
           {user?.role === 'SELLER' && <Link to="/seller" className={styles.utilBtn}>Seller</Link>}
           {user?.role === 'ADMIN'  && <Link to="/admin"  className={styles.utilBtn}>Admin</Link>}
-          <Link to="/checkout" className={styles.iconBtn} aria-label="Giỏ hàng"><BagIcon /></Link>
+          <Link to="/cart" className={styles.iconBtn} aria-label="Giỏ hàng"><BagIcon /></Link>
           {user
             ? <>
                 <Link to="/profile" className={`${styles.greeting} t-nav-link`}>
@@ -87,7 +87,7 @@ export default function Header() {
           </form>
           <Link to="/" className="t-dense-link" onClick={() => setMenuOpen(false)}>Trang chủ</Link>
           <Link to="/products" className="t-dense-link" onClick={() => setMenuOpen(false)}>Sản phẩm</Link>
-          <Link to="/checkout" className="t-dense-link" onClick={() => setMenuOpen(false)}>Giỏ hàng</Link>
+          <Link to="/cart" className="t-dense-link" onClick={() => setMenuOpen(false)}>Giỏ hàng</Link>
           {user?.role === 'SELLER' && <Link to="/seller" className="t-dense-link" onClick={() => setMenuOpen(false)}>Seller</Link>}
           {user?.role === 'ADMIN'  && <Link to="/admin"  className="t-dense-link" onClick={() => setMenuOpen(false)}>Admin</Link>}
           {user

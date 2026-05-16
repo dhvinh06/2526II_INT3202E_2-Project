@@ -2,6 +2,8 @@ import {useState, useEffect, useRef} from 'react'
 import {useParams, useNavigate, Link} from 'react-router-dom'
 import {productAPI, reviewAPI} from '../api'
 import styles from './ProductDetailPage.module.css'
+import {useAuth} from '../context/AuthContext'
+import {cartAPI} from '../api'
 
 const fmt = (n) => new Intl.NumberFormat('vi-VN', {style: 'currency', currency: 'VND'}).format(n)
 const discount = (sale, orig) => orig > sale ? Math.round((1 - sale / orig) * 100) : 0
@@ -22,6 +24,8 @@ export default function ProductDetailPage() {
     const [showStickyBar, setShowStickyBar] = useState(false)
     const actionsRef = useRef(null)
     const [reviews, setReviews] = useState([])
+    const {user} = useAuth()
+
 
     useEffect(() => {
         if (!id) return
@@ -79,7 +83,19 @@ export default function ProductDetailPage() {
         else if (val > product.stock) setQuantity(product.stock)
         else setQuantity(val)
     }
-    const handleAddToCart = () => alert(`Đã thêm ${quantity} sản phẩm vào giỏ hàng!`)
+    const handleAddToCart = async () => {
+        if (!user) return navigate('/login')
+        try {
+            await cartAPI.addToCart({
+                userId: user.id,
+                productId: product.id,
+                quantity
+            })
+            alert('Đã thêm vào giỏ hàng!')
+        } catch (err) {
+            alert('Không thể thêm vào giỏ hàng.')
+        }
+    }
     const handleBuyNow = () => navigate('/checkout')
 
     if (loading) return <div className={`${styles.statePage} t-body`}>Đang tải thông tin sản phẩm...</div>

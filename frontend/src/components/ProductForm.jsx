@@ -7,11 +7,12 @@ export default function ProductForm() {
     const [imageUrl, setImageUrl] = useState('')
     const [preview, setPreview] = useState('')
     const [uploading, setUploading] = useState(false)
-    const [form, setForm] = useState({ name:'', price:'', description:'', categoryId:'' })
+    const [form, setForm] = useState({name: '', price: '', stock: '', description: '', categoryId: ''})
     const [categories, setCategories] = useState([])
     const [brands, setBrands] = useState([])
     const [selectedBrand, setSelectedBrand] = useState('')
     const [customBrand, setCustomBrand] = useState('')
+    const [submitting, setSubmitting] = useState(false)
 
     useEffect(() => {
         categoryAPI.getAll().then(setCategories)
@@ -31,27 +32,43 @@ export default function ProductForm() {
             setUploading(true)
             const url = await uploadImageToCloudinary(file)
             setImageUrl(url)
-        } catch (err) { console.error(err); alert('Upload ảnh thất bại, thử lại') }
-        finally { setUploading(false) }
+        } catch (err) {
+            console.error(err);
+            alert('Upload ảnh thất bại, thử lại')
+        } finally {
+            setUploading(false)
+        }
     }
 
     const handleSubmit = async () => {
         if (!imageUrl) return alert('Vui lòng chờ ảnh upload xong')
-        const finalBrand = selectedBrand === '__others__' ? customBrand : selectedBrand
-        await productAPI.createProduct({
-            ...form, price: parseInt(form.price),
-            categoryId: parseInt(form.categoryId),
-            brandName: finalBrand, image: imageUrl
-        })
-        alert('Đăng sản phẩm thành công!')
+        if (submitting) return
+        setSubmitting(true)
+        try {
+            const finalBrand = selectedBrand === '__others__' ? customBrand : selectedBrand
+            await productAPI.createProduct({
+                ...form, price: parseInt(form.price),
+                stock: parseInt(form.stock) || 0,
+                categoryId: parseInt(form.categoryId),
+                brandName: finalBrand, image: imageUrl
+            })
+            alert('Đăng sản phẩm thành công!')
+            // Reset form
+            setForm({ name:'', price:'', description:'', categoryId:'', stock:'' })
+            setImageUrl(''); setPreview(''); setSelectedBrand(''); setCustomBrand('')
+        } catch (err) {
+            alert('Đăng sản phẩm thất bại, thử lại.')
+        } finally {
+            setSubmitting(false)
+        }
     }
 
     return (
         <div className={styles.card}>
             <label className={`${styles.dropArea} ${preview ? styles.hasPreview : ''}`}>
-                <input type="file" accept="image/*" onChange={handleImageChange} className={styles.fileInput} />
+                <input type="file" accept="image/*" onChange={handleImageChange} className={styles.fileInput}/>
                 {preview ? (
-                    <img src={preview} alt="preview" className={`${styles.preview} product-shadow`} />
+                    <img src={preview} alt="preview" className={`${styles.preview} product-shadow`}/>
                 ) : (
                     <div className={styles.dropContent}>
                         <span className="t-body-strong">Tải ảnh sản phẩm</span>
@@ -63,26 +80,39 @@ export default function ProductForm() {
 
             <div className={styles.formGroup}>
                 <label className="t-caption-strong">Tên sản phẩm</label>
-                <input className="pill-input" placeholder="Tên sản phẩm" value={form.name} onChange={e => setForm({...form,name:e.target.value})} />
+                <input className="pill-input" placeholder="Tên sản phẩm" value={form.name}
+                       onChange={e => setForm({...form, name: e.target.value})}/>
             </div>
             <div className={styles.formGroup}>
                 <label className="t-caption-strong">Giá (VNĐ)</label>
-                <input className="pill-input" type="number" placeholder="0" value={form.price} onChange={e => setForm({...form,price:e.target.value})} />
+                <input className="pill-input" type="number" placeholder="0" value={form.price}
+                       onChange={e => setForm({...form, price: e.target.value})}/>
+            </div>
+            <div className={styles.formGroup}>
+                <label className="t-caption-strong">Số lượng tồn kho</label>
+                <input className="pill-input" type="number" placeholder="0" min="0"
+                       value={form.stock} onChange={e => setForm({...form, stock: e.target.value})}/>
             </div>
             <div className={styles.formGroup}>
                 <label className="t-caption-strong">Mô tả sản phẩm</label>
-                <textarea className={styles.textarea} placeholder="Mô tả sản phẩm" rows="4" value={form.description} onChange={e => setForm({...form,description:e.target.value})} />
+                <textarea className={styles.textarea} placeholder="Mô tả sản phẩm" rows="4" value={form.description}
+                          onChange={e => setForm({...form, description: e.target.value})}/>
             </div>
             <div className={styles.formGroup}>
                 <label className="t-caption-strong">Danh mục</label>
-                <select className={styles.select} value={form.categoryId} onChange={e => setForm({...form,categoryId:e.target.value})}>
+                <select className={styles.select} value={form.categoryId}
+                        onChange={e => setForm({...form, categoryId: e.target.value})}>
                     <option value="">-- Chọn danh mục --</option>
-                    {categories.filter(c => c.parentId !== null).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    {categories.filter(c => c.parentId !== null).map(c => <option key={c.id}
+                                                                                  value={c.id}>{c.name}</option>)}
                 </select>
             </div>
             <div className={styles.formGroup}>
                 <label className="t-caption-strong">Thương hiệu</label>
-                <select className={styles.select} value={selectedBrand} onChange={e => { setSelectedBrand(e.target.value); setCustomBrand('') }}>
+                <select className={styles.select} value={selectedBrand} onChange={e => {
+                    setSelectedBrand(e.target.value);
+                    setCustomBrand('')
+                }}>
                     <option value="">-- Chọn thương hiệu --</option>
                     {brands.map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
                     <option value="__others__">Khác...</option>
@@ -91,11 +121,12 @@ export default function ProductForm() {
             {selectedBrand === '__others__' && (
                 <div className={styles.formGroup}>
                     <label className="t-caption-strong">Tên thương hiệu</label>
-                    <input className="pill-input" placeholder="Nhập tên thương hiệu" value={customBrand} onChange={e => setCustomBrand(e.target.value)} />
+                    <input className="pill-input" placeholder="Nhập tên thương hiệu" value={customBrand}
+                           onChange={e => setCustomBrand(e.target.value)}/>
                 </div>
             )}
-            <button onClick={handleSubmit} disabled={uploading} className={`btn-primary ${styles.submitBtn}`}>
-                {uploading ? 'Đang xử lý...' : 'Đăng sản phẩm'}
+            <button onClick={handleSubmit} disabled={uploading || submitting} className={`btn-primary ${styles.submitBtn}`}>
+                {submitting ? 'Đang đăng...' : uploading ? 'Đang xử lý...' : 'Đăng sản phẩm'}
             </button>
         </div>
     )
