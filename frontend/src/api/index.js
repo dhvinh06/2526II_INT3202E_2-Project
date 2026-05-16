@@ -162,5 +162,11 @@ export const reviewAPI = {
       const res = await axios.post('/reviews', data)
       return res.data
     } catch (err) { handleError(err) }
+  },
+  delete: async (id) => {
+    try {
+      const res = await axios.delete(`/reviews/${id}`)
+      return res.data
+    } catch (err) { handleError(err) }
   }
 }

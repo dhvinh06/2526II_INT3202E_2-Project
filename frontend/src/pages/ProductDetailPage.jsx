@@ -25,7 +25,39 @@ export default function ProductDetailPage() {
     const actionsRef = useRef(null)
     const [reviews, setReviews] = useState([])
     const {user} = useAuth()
+    const [reviewForm, setReviewForm] = useState({rating: 0, comment: ''})
+    const [submittingReview, setSubmittingReview] = useState(false)
+    const handleSubmitReview = async () => {
+        if (!user) return navigate('/login')
+        if (reviewForm.rating === 0) return alert('Vui lòng chọn số sao')
+        if (!reviewForm.comment.trim()) return alert('Vui lòng nhập nội dung đánh giá')
+        setSubmittingReview(true)
+        try {
+            await reviewAPI.create({
+                productId: Number(id),
+                userId: user.id,
+                rating: reviewForm.rating,
+                comment: reviewForm.comment
+            })
+            setReviewForm({rating: 0, comment: ''})
+            const data = await reviewAPI.getByProduct(id)
+            setReviews(data ?? [])
+        } catch (err) {
+            alert('Không thể gửi đánh giá.')
+        } finally {
+            setSubmittingReview(false)
+        }
+    }
 
+    const handleDeleteReview = async (reviewId) => {
+        if (!window.confirm('Xóa đánh giá này?')) return
+        try {
+            await reviewAPI.delete(reviewId)
+            setReviews(prev => prev.filter(r => r.id !== reviewId))
+        } catch (err) {
+            alert('Không thể xóa đánh giá.')
+        }
+    }
 
     useEffect(() => {
         if (!id) return
@@ -221,20 +253,55 @@ export default function ProductDetailPage() {
                         )}
                         {activeTab === 'reviews' && (
                             <div className={styles.reviewsTab}>
-                                {/* FIX 3: dùng reviews state thay product.reviews */}
+                                {/* FORM ĐÁNH GIÁ */}
+                                {user && (
+                                    <div className={styles.reviewForm}>
+                                        <p className="t-body-strong">Viết đánh giá của bạn</p>
+                                        <div className={styles.starPicker}>
+                                            {[1, 2, 3, 4, 5].map(s => (
+                                                <button key={s} type="button"
+                                                        className={styles.starBtn}
+                                                        style={{
+                                                            color: s <= reviewForm.rating ? '#f5a623' : '#ccc',
+                                                            fontSize: 28
+                                                        }}
+                                                        onClick={() => setReviewForm(prev => ({
+                                                            ...prev,
+                                                            rating: s
+                                                        }))}>★</button>
+                                            ))}
+                                        </div>
+                                        <textarea
+                                            className={styles.reviewTextarea}
+                                            rows={3}
+                                            placeholder="Nhập nội dung đánh giá..."
+                                            value={reviewForm.comment}
+                                            onChange={e => setReviewForm(prev => ({...prev, comment: e.target.value}))}
+                                        />
+                                        <button className="btn-primary" onClick={handleSubmitReview}
+                                                disabled={submittingReview}>
+                                            {submittingReview ? 'Đang gửi...' : 'Gửi đánh giá'}
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* LIST ĐÁNH GIÁ */}
                                 {reviews.length === 0
                                     ? <p className="t-body">Chưa có đánh giá nào.</p>
                                     : reviews.map(r => (
                                         <div key={r.id} className={styles.reviewItem}>
-                                            <div className={styles.reviewAvatar}>
-                                                {r.userName?.charAt(0) ?? '?'}
-                                            </div>
+                                            <div className={styles.reviewAvatar}>{r.userName?.charAt(0) ?? '?'}</div>
                                             <div className={styles.reviewBody}>
                                                 <div className={styles.reviewHead}>
                                                     <span className="t-body-strong">{r.userName}</span>
                                                     <span className={`t-caption ${styles.reviewDate}`}>
-                                                      {new Date(r.createdAt).toLocaleDateString('vi-VN')}
-                                                    </span>
+                                                        {new Date(r.createdAt).toLocaleDateString('vi-VN')}
+                                                            </span>
+                                                    {/* Chỉ hiện nút xóa nếu là review của mình hoặc ADMIN */}
+                                                    {(user?.id === r.userId || user?.role === 'ADMIN') && (
+                                                        <button className={styles.deleteReviewBtn}
+                                                                onClick={() => handleDeleteReview(r.id)}>Xóa</button>
+                                                    )}
                                                 </div>
                                                 <div
                                                     className={`t-caption ${styles.reviewStars}`}>{stars(r.rating)}</div>
