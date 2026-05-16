@@ -15,7 +15,6 @@ import com.example.dbms.service.ProductService;
 import com.example.dbms.service.UserAdminService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
