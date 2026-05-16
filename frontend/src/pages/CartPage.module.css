@@ -243,7 +243,7 @@
 
 .checkoutBtn {
   width: 100%;
-  background: var(--c--primary)!important;
+  background: var(--c-primary) !important;
   color: white;
   border: none;
   padding: 14px;
